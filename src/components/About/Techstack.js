@@ -8,6 +8,10 @@ import {
   DiPython,
   DiGit, 
   DiRasberryPi,
+  DiDjango, 
+  DiAws, 
+  DiJavascript,
+  DiLinux
 } from "react-icons/di";
 import {
   SiPytorch,
@@ -28,6 +32,12 @@ function Techstack() {
       </Col>
       <Col xs={4} md={2} className="tech-icons">
         <DiJava />
+      </Col>
+      <Col xs={4} md={2} className="tech-icons">
+        <DiDjango />
+      </Col>
+      <Col xs={4} md={2} className="tech-icons">
+        <DiJavascript />
       </Col>
       <Col xs={4} md={2} className="tech-icons">
         <DiNodejs />

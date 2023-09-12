@@ -10,7 +10,7 @@ function AboutCard() {
           <p style={{ textAlign: "justify" }}>
             Hi, I am <span className="purple">James Runtas </span>
             from <span className="purple"> Ottawa, Ontario.</span>
-            <br />I am an undergraduate student graduating from Carleton University with a Bachelors Engineering degree in <span className="purple">Systems & Computer Engineering</span>
+            <br />Early professional with 2 years of Software development and Cyber Security experience. September 2023 Carleton University Undergraduate degree in <span className="purple">Systems & Computer Engineering</span>
             <br />
             <br />
             Apart from building and coding, I love to

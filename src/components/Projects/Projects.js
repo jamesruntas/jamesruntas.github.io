@@ -3,7 +3,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import ProjectCard from "./ProjectCards";
 import Particle from "../Particle";
 import carleton from "../../Assets/Projects/carleton.png";
-import wordscapes from "../../Assets/Projects/wordscapes.png";
+import mlbwizard from "../../Assets/Projects/mlbwizard.png";
 import wifiheat from "../../Assets/Projects/wifiheat.jpg";
 import alphasecurity from "../../Assets/Projects/alphasecurity.jpg";
 import sudoku from "../../Assets/Projects/sudoku.png";
@@ -21,6 +21,15 @@ function Projects() {
           Here are a few projects I've worked on recently.
         </p>
         <Row style={{ justifyContent: "center", paddingBottom: "10px" }}>
+        <Col md={4} className="project-card">
+            <ProjectCard
+              imgPath={mlbwizard}
+              isBlog={false}
+              title="MLB Wizard"
+              description="Django Application displaying live MLB statistics for teams, rosters, players and news articles using MLB API"
+              ghLink="https://github.com/jamesruntas/BlueJaysChallenge"
+            />
+          </Col>
           <Col md={4} className="project-card">
             <ProjectCard
               imgPath={alphasecurity}
@@ -37,7 +46,11 @@ function Projects() {
               imgPath={spp}
               isBlog={false}
               title="Space Palette Pro: Haptic Electronic Instrument"
-              description="Project won 2nd Place prize for the 2021/2022 Undergraduate Computer Engineering Project Competition"
+              description="Project won 2nd Place prize for the 2021/2022 Undergraduate Computer Engineering Project Competition: Audio-Visual-Haptic electronic instrument where user(s) produce musical sounds and live visual and haptic feedback
+              by interacting with four pressure pads and a touch screen. Project tied for 2nd Place in 2022 SYSC Capstone Project Competition.
+              Permanent display in Carleton University, with a federal grant from the Canada Foundation for Innovation. Planned installation and demo
+              at Canadian Museum of Nature, use for live concerts/shows for Carleton Music Department."
+              ghLink="https://github.com/vizicist/palette"
               demoLink="https://www.youtube.com/embed/jvf_uyb9I8g"
             />
           </Col>
@@ -72,17 +85,6 @@ function Projects() {
               description="Solves any sudoku puzzle that the user inputs into the application."
               ghLink="https://github.com/jamesruntas/SudokuSolver"
               // demoLink="https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley" <--------Please include a demo link here
-            />
-          </Col>
-
-          <Col md={4} className="project-card">
-            <ProjectCard
-              imgPath={wordscapes}
-              isBlog={false}
-              title="Wordscapes Game Solver"
-              description="Wordscapes Mobile Game Solving Algorthim using Websters Dictionary API"
-              ghLink="https://github.com/jamesruntas/WordscapesSolver"
-              // demoLink="https://blogs.soumya-jit.tech/"      <--------Please include a demo link here 
             />
           </Col>
         </Row>
