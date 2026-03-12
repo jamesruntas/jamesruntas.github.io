@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const posts = await Astro.glob('../../content/blog/*.md');
+const sorted = posts.sort((a, b) =>
+  new Date(b.frontmatter.date).valueOf() - new Date(a.frontmatter.date).valueOf()
+);
+---
+
+<Base title="Blog" file="posts.md" folder="blog">
+  <h1>BLOG</h1>
+
+  <p>Writing on software, tools, and things I find interesting.</p>
+
+  <div class="post-list">
+    {sorted.map(post => (
+      <a href={post.url} class="post-item">
+        <div class="post-date">{post.frontmatter.date}</div>
+        <div class="post-title">{post.frontmatter.title}</div>
+        <div class="post-excerpt">{post.frontmatter.excerpt}</div>
+        <div class="post-tags">
+          {post.frontmatter.tags?.map((tag: string) => (
+            <span class="tag">{tag}</span>
+          ))}
+        </div>
+      </a>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .post-list { margin-top: 24px; }
+  .post-item {
+    display: block;
+    max-width: 680px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    transition: padding-left 0.2s;
+  }
+  .post-item:hover { padding-left: 10px; }
+  .post-item:hover .post-title { color: var(--accent); }
+  .post-date { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+  .post-title { font-size: 14px; font-weight: 700; color: var(--blue); margin-bottom: 4px; transition: color 0.2s; }
+  .post-excerpt { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag {
+    font-size: 10px;
+    background: rgba(42,161,152,0.1);
+    color: var(--teal);
+    border: 1px solid rgba(42,161,152,0.3);
+    padding: 1px 7px;
+    border-radius: 3px;
+  }
+</style>

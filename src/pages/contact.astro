@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+
+const links = [
+  { label: 'email',    value: 'james@jamesruntas.dev', href: 'mailto:james@jamesruntas.dev' },
+  { label: 'github',   value: 'github.com/jamesruntas', href: 'https://github.com/jamesruntas' },
+  { label: 'linkedin', value: 'linkedin.com/in/jamesruntas', href: 'https://linkedin.com/in/jamesruntas' },
+  { label: 'location', value: 'Ontario, Canada 🍁', href: null },
+];
+---
+
+<Base title="Contact" file="contact.md" folder="contact">
+  <h1>CONTACT</h1>
+
+  <p>
+    Open to new opportunities, collaborations, and interesting conversations. Reach out anytime.
+  </p>
+
+  <div class="contact-list">
+    {links.map(l => (
+      <div class="contact-row">
+        <span class="label">{l.label}</span>
+        {l.href
+          ? <a class="val" href={l.href} target={l.href.startsWith('mailto') ? undefined : '_blank'} rel="noopener">{l.value}</a>
+          : <span class="val muted">{l.value}</span>
+        }
+      </div>
+    ))}
+  </div>
+
+  <p class="note">Resume available on request. Response time: usually same day.</p>
+</Base>
+
+<style>
+  .contact-list { margin: 24px 0; max-width: 500px; }
+  .contact-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    transition: padding-left 0.15s;
+  }
+  .contact-row:hover { padding-left: 8px; }
+  .label { color: var(--text-dim); width: 80px; flex-shrink: 0; }
+  .val { color: var(--blue); text-decoration: none; transition: color 0.15s; }
+  .val:hover { color: var(--accent); text-decoration: underline; }
+  .val.muted { color: var(--text); cursor: default; }
+  .val.muted:hover { color: var(--text); text-decoration: none; }
+  .note { font-size: 12px; color: var(--text-dim); margin-top: 24px; }
+</style>

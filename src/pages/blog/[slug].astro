@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const posts = await Astro.glob('../../content/blog/*.md');
+  return posts.map(post => ({
+    params: { slug: post.url?.split('/').pop() },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { title, date, tags } = post.frontmatter;
+const { Content } = post;
+---
+
+<Base title={title} file={`${title.toLowerCase().replace(/ /g, '-')}.md`} folder="blog">
+  <div class="post-meta">
+    <span class="date">{date}</span>
+    {tags?.map((tag: string) => <span class="tag">{tag}</span>)}
+  </div>
+
+  <Content />
+
+  <div class="post-footer">
+    <a href="/blog">← Back to all posts</a>
+  </div>
+</Base>
+
+<style>
+  .post-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .date { font-size: 12px; color: var(--text-dim); }
+  .tag {
+    font-size: 10px;
+    background: rgba(42,161,152,0.1);
+    color: var(--teal);
+    border: 1px solid rgba(42,161,152,0.3);
+    padding: 1px 7px;
+    border-radius: 3px;
+  }
+  .post-footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .post-footer a { font-size: 13px; color: var(--accent); text-decoration: none; }
+  .post-footer a:hover { text-decoration: underline; }
+</style>

@@ -1,0 +1,68 @@
+---
+import Base from '../layouts/Base.astro';
+
+const jobs = [
+  {
+    role: 'Software Developer',
+    company: 'Company Name',
+    date: '2022 — Present · Full-time',
+    desc: 'Description of what you did, impact you made, and technologies you used. Focus on outcomes over responsibilities.',
+  },
+  {
+    role: 'Junior Developer',
+    company: 'Previous Company',
+    date: '2020 — 2022 · Full-time',
+    desc: 'What you worked on here. Technologies, scope, team size, notable achievements.',
+  },
+  {
+    role: 'Developer Intern',
+    company: 'Internship Co.',
+    date: 'Summer 2019 · Internship',
+    desc: 'First real-world experience. What you learned and built here.',
+  },
+];
+---
+
+<Base title="Experience" file="work.md" folder="experience">
+  <h1>WORK</h1>
+
+  <p>
+    My professional experience. <a href="/resume.pdf" target="_blank">Download resume ↗</a>
+  </p>
+
+  <div class="timeline">
+    {jobs.map(j => (
+      <div class="exp-item">
+        <div class="role">{j.role}</div>
+        <div class="company">{j.company}</div>
+        <div class="date">{j.date}</div>
+        <div class="desc">{j.desc}</div>
+      </div>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .timeline { margin-top: 28px; }
+  .exp-item {
+    max-width: 680px;
+    margin-bottom: 28px;
+    padding-left: 20px;
+    border-left: 2px solid var(--border);
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .exp-item:hover { border-color: var(--accent); }
+  .exp-item::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    left: -5px; top: 5px;
+  }
+  .role { font-size: 14px; font-weight: 700; color: var(--blue); }
+  .company { font-size: 13px; color: var(--accent); margin: 2px 0; }
+  .date { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; }
+  .desc { font-size: 13px; color: var(--text); line-height: 1.7; }
+</style>

@@ -1,0 +1,263 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  file?: string;
+  folder?: string;
+}
+
+const { title, file = 'index.md', folder = 'about' } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { label: 'me.md',       href: '/',           folder: 'about',      file: 'me.md' },
+  { label: 'projects.md', href: '/projects',   folder: 'projects',   file: 'projects.md' },
+  { label: 'work.md',     href: '/experience', folder: 'experience', file: 'work.md' },
+  { label: 'posts.md',    href: '/blog',       folder: 'blog',       file: 'posts.md' },
+  { label: 'contact.md',  href: '/contact',    folder: 'contact',    file: 'contact.md' },
+];
+
+function isActive(href: string) {
+  if (href === '/') return currentPath === '/';
+  return currentPath.startsWith(href);
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — James Runtas</title>
+  <meta name="description" content="James Runtas — Software Developer portfolio" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+
+  <div class="window">
+
+    <!-- TITLE BAR -->
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <span class="dot r"></span>
+        <span class="dot y"></span>
+        <span class="dot g"></span>
+      </div>
+      <div class="titlebar-center">James Runtas — Portfolio Terminal</div>
+      <div class="titlebar-right">jamesruntas.dev</div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tabbar">
+      <div class="tab active">
+        <span class="tab-accent">⬤</span> Files
+      </div>
+      <div class="tab muted">&gt;_ Terminal</div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-layout">
+
+      <!-- SIDEBAR -->
+      <nav class="sidebar" aria-label="Site navigation">
+        <div class="sidebar-prompt">
+          <span class="green">user</span>@portfolio:~$&nbsp;<span class="cmd">ls -la</span>
+        </div>
+
+        {navItems.map(item => (
+          <div class="tree-group">
+            <div class="tree-folder">
+              <span class="icon-arrow">▾</span>
+              <span class="icon-folder">📁</span>
+              {item.folder}
+            </div>
+            <a
+              href={item.href}
+              class={`tree-file ${isActive(item.href) ? 'active' : ''}`}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >
+              <span class="indent"></span>
+              <span class="icon-file">📄</span>
+              {item.label}
+            </a>
+          </div>
+        ))}
+      </nav>
+
+      <!-- CONTENT -->
+      <div class="content-wrap">
+        <div class="content-header">
+          <div class="traffic-lights small">
+            <span class="dot r"></span>
+            <span class="dot y"></span>
+            <span class="dot g"></span>
+          </div>
+          <div class="breadcrumb">
+            <span class="bc-folder">{folder}</span>
+            <span class="bc-sep">›</span>
+            <span class="bc-file">{file}</span>
+            <span class="bc-sep">•</span>
+            <span class="bc-type">markdown</span>
+          </div>
+        </div>
+
+        <main class="content-body fade-in md-content">
+          <slot />
+        </main>
+      </div>
+
+    </div><!-- /main-layout -->
+
+    <!-- STATUS BAR -->
+    <footer class="statusbar">
+      <span><span class="status-dot">●</span> Ready</span>
+      <span>{file} — Markdown</span>
+    </footer>
+
+  </div><!-- /window -->
+
+</body>
+</html>
+
+<style>
+  /* ── WINDOW ── */
+  .window {
+    width: 100%;
+    max-width: 1200px;
+    height: 90vh;
+    min-height: 600px;
+    background: var(--bg);
+    border-radius: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── TITLE BAR ── */
+  .titlebar {
+    background: var(--bg-dark);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .traffic-lights { display: flex; gap: 7px; }
+  .traffic-lights.small .dot { width: 10px; height: 10px; }
+  .dot { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #febc2e; }
+  .dot.g { background: #28c840; }
+  .titlebar-center { flex: 1; text-align: center; font-size: 12px; color: var(--text-dim); }
+  .titlebar-right { font-size: 11px; color: var(--blue); font-weight: 700; }
+
+  /* ── TAB BAR ── */
+  .tabbar {
+    background: var(--bg-dark);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 7px 18px;
+    font-size: 12px;
+    color: var(--text-dim);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab.active { background: var(--bg); color: var(--text); border-bottom: 2px solid var(--accent); margin-bottom: -1px; }
+  .tab-accent { color: var(--accent); }
+
+  /* ── MAIN LAYOUT ── */
+  .main-layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 230px;
+    min-width: 230px;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 12px 0;
+    flex-shrink: 0;
+  }
+  .sidebar-prompt { font-size: 11px; color: var(--text-dim); padding: 0 12px 12px; }
+  .green { color: var(--green); }
+  .cmd { color: var(--text); }
+
+  .tree-group { margin-bottom: 2px; }
+  .tree-folder {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+    cursor: default;
+    user-select: none;
+  }
+  .icon-arrow { font-size: 10px; color: var(--text-dim); }
+  .tree-file {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.1s;
+  }
+  .tree-file:hover { background: rgba(0,0,0,0.06); }
+  .tree-file.active { background: var(--blue); color: #fff; }
+  .tree-file.active .icon-file { filter: brightness(10); }
+  .indent { width: 14px; flex-shrink: 0; }
+  .icon-file { color: var(--teal); font-size: 13px; }
+  .icon-folder { font-size: 13px; }
+
+  /* ── CONTENT ── */
+  .content-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .content-header {
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    padding: 7px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .breadcrumb { font-size: 12px; display: flex; align-items: center; gap: 5px; }
+  .bc-folder { color: var(--text-dim); }
+  .bc-sep { color: var(--border); }
+  .bc-file { color: var(--text); }
+  .bc-type { color: var(--text-dim); }
+  .content-body { flex: 1; overflow-y: auto; padding: 40px 56px; }
+
+  /* ── STATUS BAR ── */
+  .statusbar {
+    background: var(--bg-dark);
+    border-top: 1px solid var(--border);
+    padding: 5px 16px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .status-dot { color: var(--green); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    body { padding: 0; }
+    .window { height: 100vh; border-radius: 0; }
+    .sidebar { width: 180px; min-width: 180px; }
+    .content-body { padding: 24px 20px; }
+    .titlebar-center { display: none; }
+  }
+</style>

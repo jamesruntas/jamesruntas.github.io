@@ -1,0 +1,78 @@
+---
+import Base from '../layouts/Base.astro';
+
+const projects = [
+  {
+    name: 'project-name-one',
+    desc: 'A full-stack web application that solves a real problem. Built with a focus on performance and clean UX.',
+    tags: ['React', 'Node.js', 'PostgreSQL'],
+    demo: '#',
+    repo: '#',
+  },
+  {
+    name: 'project-name-two',
+    desc: 'An open-source CLI tool that automates tedious tasks. 200+ stars on GitHub.',
+    tags: ['Python', 'CLI', 'Open Source'],
+    demo: null,
+    repo: '#',
+  },
+  {
+    name: 'project-name-three',
+    desc: 'A browser extension that enhances developer workflow. Built over a weekend hackathon.',
+    tags: ['JavaScript', 'Chrome Extension'],
+    demo: '#',
+    repo: '#',
+  },
+];
+---
+
+<Base title="Projects" file="projects.md" folder="projects">
+  <h1>PROJECTS</h1>
+
+  <p>
+    A selection of things I've built. More on <a href="https://github.com/jamesruntas" target="_blank" rel="noopener">GitHub ↗</a>
+  </p>
+
+  <div class="project-list">
+    {projects.map(p => (
+      <div class="card">
+        <h3>{p.name}</h3>
+        <p>{p.desc}</p>
+        <div class="tags">
+          {p.tags.map(t => <span class="tag">{t}</span>)}
+        </div>
+        <div class="links">
+          {p.demo && <a href={p.demo}>→ Live Demo</a>}
+          {p.repo && <a href={p.repo} target="_blank" rel="noopener">→ GitHub</a>}
+        </div>
+      </div>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .project-list { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+    background: var(--bg-panel);
+    max-width: 680px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { border-color: var(--accent); box-shadow: 3px 3px 0 rgba(220,79,10,0.12); }
+  .card h3 { font-size: 14px; font-weight: 700; color: var(--blue); margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--text); margin-bottom: 12px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .tag {
+    font-size: 11px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 3px;
+    color: var(--green);
+  }
+  .links { display: flex; gap: 14px; }
+  .links a { font-size: 12px; color: var(--accent); text-decoration: none; transition: color 0.15s; }
+  .links a:hover { color: var(--accent2); text-decoration: underline; }
+</style>
