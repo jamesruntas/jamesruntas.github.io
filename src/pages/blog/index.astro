@@ -11,41 +11,88 @@ const sorted = posts.sort((a, b) =>
 <Base title="Blog" file="posts.md" folder="blog">
   <h1>BLOG</h1>
 
-  <p>Writing on software, tools, and things I find interesting.</p>
+  <p>Writing on software, tools, and things I find interesting. Click any post to expand.</p>
 
   <div class="post-list">
-    {sorted.map(post => (
-      <a href={post.url} class="post-item">
-        <div class="post-date">{post.frontmatter.date}</div>
-        <div class="post-title">{post.frontmatter.title}</div>
-        <div class="post-excerpt">{post.frontmatter.excerpt}</div>
-        <div class="post-tags">
-          {post.frontmatter.tags?.map((tag: string) => (
-            <span class="tag">{tag}</span>
-          ))}
+    {sorted.map((post, i) => (
+      <div class="post-item" id={`post-${i}`}>
+
+        <!-- HEADER (clickable) -->
+        <button class="post-header" aria-expanded="false" aria-controls={`content-${i}`}>
+          <div class="post-left">
+            <span class="post-arrow">▸</span>
+            <div>
+              <div class="post-title">{post.frontmatter.title}</div>
+              <div class="post-excerpt">{post.frontmatter.excerpt}</div>
+            </div>
+          </div>
+          <div class="post-right">
+            <span class="post-date">{post.frontmatter.date}</span>
+            <div class="post-tags">
+              {post.frontmatter.tags?.map((tag: string) => (
+                <span class="tag">{tag}</span>
+              ))}
+            </div>
+          </div>
+        </button>
+
+        <!-- CONTENT (collapsible) -->
+        <div class="post-content md-content" id={`content-${i}`} aria-hidden="true">
+          <div class="post-content-inner">
+            <post.default />
+          </div>
         </div>
-      </a>
+
+      </div>
     ))}
   </div>
 </Base>
 
 <style>
-  .post-list { margin-top: 24px; }
+  .post-list { margin-top: 24px; display: flex; flex-direction: column; max-width: 680px; }
+
   .post-item {
-    display: block;
-    max-width: 680px;
-    padding: 16px 0;
     border-bottom: 1px solid var(--border);
-    text-decoration: none;
-    color: inherit;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  .post-header {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--mono);
+    text-align: left;
     transition: padding-left 0.2s;
   }
-  .post-item:hover { padding-left: 10px; }
-  .post-item:hover .post-title { color: var(--accent); }
-  .post-date { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
-  .post-title { font-size: 14px; font-weight: 700; color: var(--blue); margin-bottom: 4px; transition: color 0.2s; }
-  .post-excerpt { font-size: 13px; color: var(--text); line-height: 1.6; }
-  .post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .post-header:hover { padding-left: 8px; }
+  .post-header:hover .post-title { color: var(--accent); }
+  .post-header[aria-expanded="true"] { padding-left: 8px; }
+  .post-header[aria-expanded="true"] .post-title { color: var(--accent); }
+  .post-header[aria-expanded="true"] .post-arrow { transform: rotate(90deg); color: var(--accent); }
+
+  .post-left  { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
+  .post-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+
+  .post-arrow {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    flex-shrink: 0;
+    transition: transform 0.2s, color 0.2s;
+  }
+
+  .post-title   { font-size: 14px; font-weight: 700; color: var(--blue); margin-bottom: 3px; transition: color 0.2s; }
+  .post-excerpt { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .post-date    { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+
+  .post-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
   .tag {
     font-size: 10px;
     background: rgba(42,161,152,0.1);
@@ -53,5 +100,53 @@ const sorted = posts.sort((a, b) =>
     border: 1px solid rgba(42,161,152,0.3);
     padding: 1px 7px;
     border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* ── COLLAPSIBLE CONTENT ── */
+  .post-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+  }
+  .post-content.open {
+    grid-template-rows: 1fr;
+  }
+  .post-content-inner {
+    overflow: hidden;
+  }
+
+  /* Inner padding when open */
+  .post-content.open .post-content-inner {
+    padding: 0 0 28px 22px;
+    border-left: 2px solid var(--accent);
+    margin-left: 4px;
+    margin-bottom: 8px;
   }
 </style>
+
+<script>
+  document.querySelectorAll('.post-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const isOpen = header.getAttribute('aria-expanded') === 'true';
+      const contentId = header.getAttribute('aria-controls');
+      const content = contentId ? document.getElementById(contentId) : null;
+
+      // Close all others
+      document.querySelectorAll('.post-header').forEach(h => {
+        h.setAttribute('aria-expanded', 'false');
+      });
+      document.querySelectorAll('.post-content').forEach(c => {
+        c.classList.remove('open');
+        c.setAttribute('aria-hidden', 'true');
+      });
+
+      // Toggle clicked one
+      if (!isOpen && content) {
+        header.setAttribute('aria-expanded', 'true');
+        content.classList.add('open');
+        content.setAttribute('aria-hidden', 'false');
+      }
+    });
+  });
+</script>

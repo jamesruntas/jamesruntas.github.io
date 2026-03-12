@@ -8,6 +8,7 @@ const projects = [
     tags: ['Python', 'Machine Learning', 'Cybersecurity', 'Sensors'],
     repo: 'https://github.com/jamesruntas/Henry-The-Motion-ML-Model/blob/Version1.0/SYSC4415_Assignment3_James_Runtas.ipynb',
     demo: null,
+    pdf: null,
   },
   {
     name: 'CovidML — X-Ray Analysis',
@@ -15,6 +16,7 @@ const projects = [
     tags: ['Python', 'Deep Learning', 'CNN', 'Transfer Learning', 'Medical AI'],
     repo: 'https://github.com/jamesruntas/LearningML_Sandbox/blob/main/Copy_of_SYSC4415_Assignment2.ipynb',
     demo: null,
+    pdf: null,
   },
   {
     name: 'MLB Wizard',
@@ -22,13 +24,15 @@ const projects = [
     tags: ['Python', 'Django', 'REST API', 'Sports Data'],
     repo: 'https://github.com/jamesruntas/BlueJaysChallenge',
     demo: null,
+    pdf: null,
   },
   {
     name: 'Alpha Security Squared',
     desc: 'Fully modular cloud-based home security system utilizing Raspberry Pi. Users can register/login to a mobile app and monitor motion sensors, tripwires, cameras, and sound detection in real time.',
     tags: ['Raspberry Pi', 'Cloud', 'IoT', 'Mobile', 'Security'],
     repo: 'https://github.com/bradenhayes/Alpha_Security',
-    demo: 'https://docs.google.com/document/d/1jq68JXwyx_laQ1z1VP5tOaR38cIFh3tzH76Wqj5AdRc/edit?usp=sharing',
+    demo: '',
+    pdf: 'https://docs.google.com/document/d/1jq68JXwyx_laQ1z1VP5tOaR38cIFh3tzH76Wqj5AdRc/edit?usp=sharing',
   },
   {
     name: 'Space Palette Pro — Haptic Electronic Instrument',
@@ -36,20 +40,23 @@ const projects = [
     tags: ['Embedded Systems', 'Hardware', 'Audio', 'Haptics', 'Capstone'],
     repo: 'https://github.com/vizicist/palette',
     demo: 'https://www.youtube.com/embed/jvf_uyb9I8g',
+    pdf: 'https://docs.google.com/document/d/1V9XcM7gG8Xi_QeZdAncV3hg-qMXnBHj6P9n_cI6pOc0/edit?usp=sharing',
   },
   {
     name: 'Wi-Fi Router Placement Optimization',
     desc: 'Using linear programming, mathematical matrices, and electromagnetic waveform equations, uncovered the direct correlation between Wi-Fi signal strength and floorplan layout. The program outputs the optimal router location inside any home or office, accounting for walls and building materials.',
     tags: ['Python', 'Linear Programming', 'Mathematics', 'Networking'],
     repo: null,
-    demo: 'https://docs.google.com/document/d/1pcHk6W4b-_bWIkrXtuanDfWLHRIgock57hhnWqSjabE/edit?usp=sharing',
+    demo: null,
+    pdf: 'https://docs.google.com/document/d/1pcHk6W4b-_bWIkrXtuanDfWLHRIgock57hhnWqSjabE/edit?usp=sharing',
   },
   {
     name: 'IBM & Carleton — One Health Greenspace Initiative',
     desc: 'A proposition for building a new green hospital on the Experimental Farm in Ottawa, Ontario. Created a video, report, and website for an Environmental Engineering Workshop hosted by Carleton University and IBM.',
     tags: ['Environmental Engineering', 'IBM', 'Research', 'Sustainability'],
     repo: null,
-    demo: 'https://drive.google.com/file/d/17G86fRuYozoJYOaH3h9fh5jZZgDpGUhh/preview',
+    demo: null,
+    pdf: 'https://drive.google.com/file/d/17G86fRuYozoJYOaH3h9fh5jZZgDpGUhh/preview',
   },
   {
     name: 'Sudoku Solver',
@@ -57,6 +64,7 @@ const projects = [
     tags: ['Python', 'Algorithms', 'Backtracking'],
     repo: 'https://github.com/jamesruntas/SudokuSolver',
     demo: null,
+    pdf: null,
   },
 ];
 ---
@@ -78,10 +86,29 @@ const projects = [
         </div>
         <div class="links">
           {p.repo && <a href={p.repo} target="_blank" rel="noopener">→ GitHub</a>}
-          {p.demo && <a href={p.demo} target="_blank" rel="noopener">→ Demo / Docs</a>}
+          {p.demo && <a href={p.demo} target="_blank" rel="noopener">→ Demo</a>}
+          {p.pdf && (
+            <button class="pdf-btn" data-pdf={p.pdf}>→ View Report</button>
+          )}
         </div>
       </div>
     ))}
+  </div>
+
+  <!-- PDF MODAL -->
+  <div id="pdf-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-window">
+      <div class="modal-titlebar">
+        <div class="traffic-lights">
+          <span class="dot r"></span>
+          <span class="dot y"></span>
+          <span class="dot g"></span>
+        </div>
+        <span class="modal-title">pdf — preview</span>
+        <button id="modal-close" class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <iframe id="pdf-frame" src="" class="pdf-frame" title="PDF Preview"></iframe>
+    </div>
   </div>
 </Base>
 
@@ -110,7 +137,7 @@ const projects = [
     color: var(--green);
   }
 
-  .links { display: flex; gap: 14px; }
+  .links { display: flex; gap: 14px; align-items: center; }
   .links a {
     font-size: 12px;
     color: var(--accent);
@@ -118,4 +145,131 @@ const projects = [
     transition: color 0.15s;
   }
   .links a:hover { color: var(--accent2); text-decoration: underline; }
+
+  .pdf-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .pdf-btn:hover { color: var(--accent2); text-decoration: underline; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    padding: 20px;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal-window {
+    background: var(--bg);
+    border-radius: 10px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    width: 100%;
+    max-width: 860px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(12px);
+    transition: transform 0.2s ease;
+  }
+  .modal-overlay.open .modal-window {
+    transform: translateY(0);
+  }
+
+  .modal-titlebar {
+    background: var(--bg-dark);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .traffic-lights { display: flex; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #febc2e; }
+  .dot.g { background: #28c840; }
+
+  .modal-title { flex: 1; font-size: 12px; color: var(--text-dim); }
+  .modal-close {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .modal-close:hover { background: rgba(220,79,10,0.1); color: var(--accent); }
+
+  .pdf-frame {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: var(--bg-dark);
+  }
 </style>
+
+<script>
+  const modal   = document.getElementById('pdf-modal');
+  const frame   = document.getElementById('pdf-frame') as HTMLIFrameElement;
+  const closeBtn = document.getElementById('modal-close');
+
+  // Open modal when any pdf-btn is clicked
+  document.querySelectorAll('.pdf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pdf = (btn as HTMLElement).dataset.pdf;
+      if (pdf && frame && modal) {
+        frame.src = pdf;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
+
+  // Close on button
+  closeBtn?.addEventListener('click', closeModal);
+
+  // Close on backdrop click
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  function closeModal() {
+    if (modal && frame) {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      // Small delay before clearing src so close animation plays
+      setTimeout(() => { frame.src = ''; }, 200);
+    }
+  }
+</script>
