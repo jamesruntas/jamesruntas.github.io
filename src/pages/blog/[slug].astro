@@ -2,16 +2,16 @@
 import Base from '../../layouts/Base.astro';
 
 export async function getStaticPaths() {
-  const posts = await Astro.glob('../../content/blog/*.md');
-  return posts.map(post => ({
-    params: { slug: post.url?.split('/').pop() },
+  const postFiles = import.meta.glob('../../content/blog/*.md', { eager: true });
+  return Object.entries(postFiles).map(([path, post]: [string, any]) => ({
+    params: { slug: path.split('/').pop()?.replace('.md', '') },
     props: { post },
   }));
 }
 
 const { post } = Astro.props;
 const { title, date, tags } = post.frontmatter;
-const { Content } = post;
+const Content = post.default;
 ---
 
 <Base title={title} file={`${title.toLowerCase().replace(/ /g, '-')}.md`} folder="blog">
