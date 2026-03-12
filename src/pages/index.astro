@@ -1,70 +1,101 @@
 ---
 import Base from '../layouts/Base.astro';
+
+const skills = {
+  'Cybersecurity': ['Penetration Testing', 'Vulnerability Assessments', 'Network Traffic Analysis', 'Threat Detection', 'Phishing Analysis', 'Digital Forensics', 'Red Teaming'],
+  'Software & Cloud': ['Python', 'Java', 'JavaScript', 'C/C++', 'Go', 'SQL', 'Docker', 'Kubernetes', 'AWS', 'GCP', 'Kafka', 'RHEL', 'Kali', 'Debian'],
+  'AI / ML': ['CNNs', 'Transfer Learning', 'Ensemble Methods', 'Sensor Pattern Detection', 'Medical Imaging', 'Anaconda'],
+  'Business & Strategy': ['R&D Feasibility Analysis', 'Technical Due Diligence', 'SR&ED Filing', 'Tech Strategy', 'Client Management', 'Startup Research'],
+};
 ---
 
 <Base title="About" file="me.md" folder="about">
   <h1>JAMES<br/>RUNTAS</h1>
 
   <p>
-    Hi — I'm a software developer based in <code>Ontario, CA</code>. I build
-    things for the web, write about what I learn, and occasionally break things
-    in interesting ways. <span class="cursor"></span>
+    Senior Consultant and engineer based in <code>Toronto, Ontario 🍁</code> — bridging the gap between deep technical expertise and business strategy.
+    <span class="cursor"></span>
   </p>
 
   <p>
-    I care about clean code, good interfaces, and tools that make other
-    developers' lives easier. Currently open to new opportunities.
+    At EY I lead technical evaluations of cutting-edge R&D for federal innovation funding, working directly with CTOs, founders, and directors across AI, cybersecurity, cloud, and embedded systems. Before consulting I built things — from haptic instruments and ML pipelines to cloud security infrastructure at Bell.
+  </p>
+
+  <p>
+    I hold a B.Eng. in Systems and Computer Engineering from Carleton University and am currently completing an MBA (Technology Stream) at Hult International Business School.
   </p>
 
   <blockquote>
-    "The best code is the code you don't have to write twice."
+    "Technical depth isn't enough. The best engineers multiply the effectiveness of those around them."
   </blockquote>
 
-  <h2>// SKILLS</h2>
-  <div class="skills-grid">
-    <span class="skill">JavaScript</span>
-    <span class="skill">TypeScript</span>
-    <span class="skill">React</span>
-    <span class="skill">Astro</span>
-    <span class="skill">Node.js</span>
-    <span class="skill">Python</span>
-    <span class="skill">SQL</span>
-    <span class="skill">Git</span>
-    <span class="skill">CSS / Tailwind</span>
-    <span class="skill">REST APIs</span>
-  </div>
+  {Object.entries(skills).map(([category, items]) => (
+    <div class="skill-section">
+      <h2>// {category.toUpperCase()}</h2>
+      <div class="skills-grid">
+        {items.map(s => <span class="skill">{s}</span>)}
+      </div>
+    </div>
+  ))}
 
   <h2>// CURRENTLY</h2>
-  <ul>
-    <li>Building projects and writing about them</li>
-    <li>Open to full-time and contract roles</li>
-    <li>Based in Ontario, Canada 🍁</li>
+  <ul class="status-list">
+    <li>Senior Consultant – SR&ED at Ernst & Young, Toronto</li>
+    <li>MBA candidate at Hult International Business School</li>
+    <li>CompTIA Security+ · AWS Solutions Architect · Google IT Security</li>
+    <li>Open to interesting technical and strategic opportunities</li>
   </ul>
 </Base>
 
 <style>
+  .skill-section { margin-bottom: 8px; }
+
   .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
-    margin: 12px 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 20px;
     max-width: 680px;
   }
+
   .skill {
     background: var(--bg-dark);
     border: 1px solid var(--border);
     border-radius: 4px;
-    padding: 8px 12px;
+    padding: 6px 12px;
     font-size: 12px;
     color: var(--teal);
     transition: border-color 0.15s, background 0.15s;
     cursor: default;
+    white-space: nowrap;
   }
   .skill::before {
     content: '● ';
     font-size: 7px;
     vertical-align: middle;
     margin-right: 4px;
+    opacity: 0.7;
   }
   .skill:hover { border-color: var(--teal); background: rgba(42,161,152,0.06); }
+
+  .status-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    max-width: 680px;
+  }
+  .status-list li {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 6px;
+    padding-left: 14px;
+    position: relative;
+  }
+  .status-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
 </style>

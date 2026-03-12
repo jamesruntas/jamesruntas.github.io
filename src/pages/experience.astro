@@ -3,22 +3,37 @@ import Base from '../layouts/Base.astro';
 
 const jobs = [
   {
-    role: 'Software Developer',
-    company: 'Company Name',
-    date: '2022 — Present · Full-time',
-    desc: 'Description of what you did, impact you made, and technologies you used. Focus on outcomes over responsibilities.',
+    role: 'Senior Consultant – SR&ED',
+    company: 'Ernst & Young | Toronto, ON',
+    date: '2023 — Present · Full-time',
+    bullets: [
+      'Led technical evaluations of early-stage technologies, prototypes, and software architectures to determine eligibility for federal innovation funding, influencing millions in annual approvals.',
+      'Assessed R&D claims involving cloud architectures, cybersecurity, ML pipelines, DevOps, and embedded systems.',
+      'Analyzed large-scale codebases and engineering documentation to validate technical risks and research methodology.',
+      'Provided strategic guidance to CTOs, directors, and founders on R&D roadmap structuring and innovation planning.',
+      'Mentored junior consultants in technical evaluation methodologies, report writing, and client communication.',
+    ],
   },
   {
-    role: 'Junior Developer',
-    company: 'Previous Company',
-    date: '2020 — 2022 · Full-time',
-    desc: 'What you worked on here. Technologies, scope, team size, notable achievements.',
+    role: 'Computer Systems Engineer',
+    company: 'Carleton University | Ottawa, ON',
+    date: '2021 — 2023',
+    bullets: [
+      'Collaborated with a programmer to develop an Audio-Visual-Haptic electronic instrument as an undergraduate engineering project, then hired by the school to continue development.',
+      'Achieved an A+ grade and won 2nd Place in the 2021/2022 Undergraduate Computer Engineering Project Competition.',
+      'Secured a federal grant for accessible technology, enabling a display of the instrument at the ARISE building on campus.',
+    ],
   },
   {
-    role: 'Developer Intern',
-    company: 'Internship Co.',
-    date: 'Summer 2019 · Internship',
-    desc: 'First real-world experience. What you learned and built here.',
+    role: 'Cybersecurity Specialist & Co-op',
+    company: 'Bell | Ottawa, ON',
+    date: '2021 — 2022',
+    bullets: [
+      'Developed security solutions across internal IR teams as part of Cyber Threat Intelligence.',
+      'Architected and implemented a secure on-premises server room with 10 racks, integrating switches, cabling, KVMs, and firewalls to support segmented environments including prod, dev, test, cyber range, and dark web access.',
+      'Participated in digital forensics, red teaming, and active ransomware response scenarios.',
+      'Analyzed network and VM anomalies across virtual platforms, identifying vulnerabilities and implementing mitigations.',
+    ],
   },
 ];
 ---
@@ -36,14 +51,38 @@ const jobs = [
         <div class="role">{j.role}</div>
         <div class="company">{j.company}</div>
         <div class="date">{j.date}</div>
-        <div class="desc">{j.desc}</div>
+        <ul class="bullets">
+          {j.bullets.map(b => <li>{b}</li>)}
+        </ul>
       </div>
     ))}
+  </div>
+
+  <h2 class="section-heading">// EDUCATION</h2>
+  <div class="timeline">
+    <div class="exp-item">
+      <div class="role">MBA — Technology Stream</div>
+      <div class="company">Hult International Business School | Virtual</div>
+      <div class="date">2025 — Present</div>
+    </div>
+    <div class="exp-item">
+      <div class="role">B.Eng., Systems and Computer Engineering</div>
+      <div class="company">Carleton University | Ottawa, ON</div>
+      <div class="date">2018 — 2023</div>
+    </div>
+  </div>
+
+  <h2 class="section-heading">// CERTIFICATIONS</h2>
+  <div class="cert-list">
+    <div class="cert"><span class="cert-year">2025</span>CompTIA Security+</div>
+    <div class="cert"><span class="cert-year">2025</span>Amazon: AWS Cloud Solutions Architect</div>
+    <div class="cert"><span class="cert-year">2024</span>Google: IT Security Professional</div>
   </div>
 </Base>
 
 <style>
-  .timeline { margin-top: 28px; }
+  .timeline { margin-top: 20px; margin-bottom: 8px; }
+
   .exp-item {
     max-width: 680px;
     margin-bottom: 28px;
@@ -61,8 +100,54 @@ const jobs = [
     position: absolute;
     left: -5px; top: 5px;
   }
-  .role { font-size: 14px; font-weight: 700; color: var(--blue); }
+
+  .role    { font-size: 14px; font-weight: 700; color: var(--blue); }
   .company { font-size: 13px; color: var(--accent); margin: 2px 0; }
-  .date { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; }
-  .desc { font-size: 13px; color: var(--text); line-height: 1.7; }
+  .date    { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; }
+
+  .bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .bullets li {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 6px;
+    padding-left: 14px;
+    position: relative;
+  }
+  .bullets li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--text-dim);
+  }
+
+  .section-heading {
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--accent2);
+    margin: 36px 0 16px;
+    letter-spacing: 0.05em;
+  }
+
+  .cert-list { margin-bottom: 24px; }
+  .cert {
+    font-size: 13px;
+    color: var(--text);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    max-width: 480px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .cert-year {
+    font-size: 11px;
+    color: var(--text-dim);
+    width: 36px;
+    flex-shrink: 0;
+  }
 </style>

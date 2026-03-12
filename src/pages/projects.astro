@@ -3,25 +3,60 @@ import Base from '../layouts/Base.astro';
 
 const projects = [
   {
-    name: 'project-name-one',
-    desc: 'A full-stack web application that solves a real problem. Built with a focus on performance and clean UX.',
-    tags: ['React', 'Node.js', 'PostgreSQL'],
-    demo: '#',
-    repo: '#',
-  },
-  {
-    name: 'project-name-two',
-    desc: 'An open-source CLI tool that automates tedious tasks. 200+ stars on GitHub.',
-    tags: ['Python', 'CLI', 'Open Source'],
+    name: 'MotionML',
+    desc: 'ML detection system for smartphone sensor patterns (82% accuracy), enabling behavioral anomaly identification and motion-based threat detection. Implemented ensemble validation pipeline to differentiate authorized vs unauthorized device handling patterns.',
+    tags: ['Python', 'Machine Learning', 'Cybersecurity', 'Sensors'],
+    repo: 'https://github.com/jamesruntas/Henry-The-Motion-ML-Model/blob/Version1.0/SYSC4415_Assignment3_James_Runtas.ipynb',
     demo: null,
-    repo: '#',
   },
   {
-    name: 'project-name-three',
-    desc: 'A browser extension that enhances developer workflow. Built over a weekend hackathon.',
-    tags: ['JavaScript', 'Chrome Extension'],
-    demo: '#',
-    repo: '#',
+    name: 'CovidML — X-Ray Analysis',
+    desc: 'X-ray classification pipeline to detect disease using pre-trained CNNs. Inception V3 achieved 100% accuracy, ResNet50 achieved 96.03% accuracy. Leveraged transfer learning and addressed class imbalance in medical image datasets.',
+    tags: ['Python', 'Deep Learning', 'CNN', 'Transfer Learning', 'Medical AI'],
+    repo: 'https://github.com/jamesruntas/LearningML_Sandbox/blob/main/Copy_of_SYSC4415_Assignment2.ipynb',
+    demo: null,
+  },
+  {
+    name: 'MLB Wizard',
+    desc: 'Django application displaying live MLB statistics for teams, rosters, players, and news articles using the MLB API.',
+    tags: ['Python', 'Django', 'REST API', 'Sports Data'],
+    repo: 'https://github.com/jamesruntas/BlueJaysChallenge',
+    demo: null,
+  },
+  {
+    name: 'Alpha Security Squared',
+    desc: 'Fully modular cloud-based home security system utilizing Raspberry Pi. Users can register/login to a mobile app and monitor motion sensors, tripwires, cameras, and sound detection in real time.',
+    tags: ['Raspberry Pi', 'Cloud', 'IoT', 'Mobile', 'Security'],
+    repo: 'https://github.com/bradenhayes/Alpha_Security',
+    demo: 'https://docs.google.com/document/d/1jq68JXwyx_laQ1z1VP5tOaR38cIFh3tzH76Wqj5AdRc/edit?usp=sharing',
+  },
+  {
+    name: 'Space Palette Pro — Haptic Electronic Instrument',
+    desc: 'Audio-Visual-Haptic electronic instrument where users produce musical sounds with live visual and haptic feedback via pressure pads and a touchscreen. Won 2nd Place in the 2021/2022 Undergraduate Computer Engineering Project Competition. Permanently displayed at Carleton University with a federal grant from the Canada Foundation for Innovation.',
+    tags: ['Embedded Systems', 'Hardware', 'Audio', 'Haptics', 'Capstone'],
+    repo: 'https://github.com/vizicist/palette',
+    demo: 'https://www.youtube.com/embed/jvf_uyb9I8g',
+  },
+  {
+    name: 'Wi-Fi Router Placement Optimization',
+    desc: 'Using linear programming, mathematical matrices, and electromagnetic waveform equations, uncovered the direct correlation between Wi-Fi signal strength and floorplan layout. The program outputs the optimal router location inside any home or office, accounting for walls and building materials.',
+    tags: ['Python', 'Linear Programming', 'Mathematics', 'Networking'],
+    repo: null,
+    demo: 'https://docs.google.com/document/d/1pcHk6W4b-_bWIkrXtuanDfWLHRIgock57hhnWqSjabE/edit?usp=sharing',
+  },
+  {
+    name: 'IBM & Carleton — One Health Greenspace Initiative',
+    desc: 'A proposition for building a new green hospital on the Experimental Farm in Ottawa, Ontario. Created a video, report, and website for an Environmental Engineering Workshop hosted by Carleton University and IBM.',
+    tags: ['Environmental Engineering', 'IBM', 'Research', 'Sustainability'],
+    repo: null,
+    demo: 'https://drive.google.com/file/d/17G86fRuYozoJYOaH3h9fh5jZZgDpGUhh/preview',
+  },
+  {
+    name: 'Sudoku Solver',
+    desc: 'Solves any valid Sudoku puzzle that the user inputs into the application.',
+    tags: ['Python', 'Algorithms', 'Backtracking'],
+    repo: 'https://github.com/jamesruntas/SudokuSolver',
+    demo: null,
   },
 ];
 ---
@@ -42,8 +77,8 @@ const projects = [
           {p.tags.map(t => <span class="tag">{t}</span>)}
         </div>
         <div class="links">
-          {p.demo && <a href={p.demo}>→ Live Demo</a>}
           {p.repo && <a href={p.repo} target="_blank" rel="noopener">→ GitHub</a>}
+          {p.demo && <a href={p.demo} target="_blank" rel="noopener">→ Demo / Docs</a>}
         </div>
       </div>
     ))}
@@ -52,6 +87,7 @@ const projects = [
 
 <style>
   .project-list { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+
   .card {
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -62,7 +98,8 @@ const projects = [
   }
   .card:hover { border-color: var(--accent); box-shadow: 3px 3px 0 rgba(220,79,10,0.12); }
   .card h3 { font-size: 14px; font-weight: 700; color: var(--blue); margin-bottom: 6px; }
-  .card p { font-size: 13px; color: var(--text); margin-bottom: 12px; }
+  .card p  { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 12px; }
+
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
   .tag {
     font-size: 11px;
@@ -72,7 +109,13 @@ const projects = [
     border-radius: 3px;
     color: var(--green);
   }
+
   .links { display: flex; gap: 14px; }
-  .links a { font-size: 12px; color: var(--accent); text-decoration: none; transition: color 0.15s; }
+  .links a {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
   .links a:hover { color: var(--accent2); text-decoration: underline; }
 </style>
