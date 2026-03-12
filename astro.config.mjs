@@ -6,7 +6,7 @@ export default defineConfig({
   output: 'static',
 
   // 🔁 replace with your GitHub username
-  site: 'https://jamesruntas.github.io',
+  site: 'https://jamesruntas.ca',
 
   vite: {
     plugins: [tailwindcss()]
