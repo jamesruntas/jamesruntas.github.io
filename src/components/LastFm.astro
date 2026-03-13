@@ -105,11 +105,15 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
       const artist = t.artist?.name ?? '—';
       const name   = t.name ?? '—';
       const plays  = parseInt(t.playcount ?? 0).toLocaleString();
-      const img    = t.image?.[1]?.['#text'];
+      const mbid   = t.mbid ?? '';
+      // Use Cover Art Archive if we have an mbid, otherwise music note placeholder
+      const imgHtml = mbid
+        ? `<img class="lfm-art" src="https://coverartarchive.org/release/${mbid}/front-250" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'lfm-art-placeholder lfm-art-note',textContent:'♪'}))" />`
+        : `<div class="lfm-art-placeholder lfm-art-note">♪</div>`;
       return `
         <div class="lfm-row">
           <span class="lfm-index">${String(i + 1).padStart(2, '0')}</span>
-          ${img ? `<img class="lfm-art" src="${img}" alt="" loading="lazy" />` : '<div class="lfm-art-placeholder"></div>'}
+          ${imgHtml}
           <div class="lfm-info">
             <div class="lfm-track">${name}</div>
             <div class="lfm-artist">${artist}</div>
@@ -122,13 +126,13 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
   function renderTopArtists(artists) {
     if (!artists.length) return '<div class="lfm-empty">no artist data found</div>';
     return artists.map((a, i) => {
-      const name  = a.name ?? '—';
-      const plays = parseInt(a.playcount ?? 0).toLocaleString();
-      const img   = a.image?.[1]?.['#text'];
+      const name    = a.name ?? '—';
+      const plays   = parseInt(a.playcount ?? 0).toLocaleString();
+      const initial = name.charAt(0).toUpperCase();
       return `
         <div class="lfm-row">
           <span class="lfm-index">${String(i + 1).padStart(2, '0')}</span>
-          ${img ? `<img class="lfm-art lfm-art-round" src="${img}" alt="" loading="lazy" />` : '<div class="lfm-art-placeholder lfm-art-round"></div>'}
+          <div class="lfm-art-placeholder lfm-art-round lfm-art-initial">${initial}</div>
           <div class="lfm-info">
             <div class="lfm-track">${name}</div>
             <div class="lfm-artist">artist</div>
@@ -309,6 +313,19 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
     border: 1px solid var(--border);
     border-radius: 3px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lfm-art-note {
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+  .lfm-art-initial {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--mono);
   }
 
   .lfm-info { flex: 1; min-width: 0; }
