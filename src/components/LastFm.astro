@@ -45,10 +45,10 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
   </div>
 </div>
 
-<script lang="ts">
-  const widget   = document.getElementById('lastfm-widget') as HTMLElement;
-  const apiKey   = widget.dataset.apiKey ?? '';
-  const username = widget.dataset.username ?? '';
+<script>
+  const widget   = document.getElementById('lastfm-widget');
+  const apiKey   = widget?.dataset.apiKey ?? '';
+  const username = widget?.dataset.username ?? '';
   const BASE     = 'https://ws.audioscrobbler.com/2.0/';
   let topTracksPeriod = '7day';
 
@@ -59,7 +59,7 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
     return data.recenttracks?.track ?? [];
   }
 
-  async function fetchTopTracks(period: string = '7day') {
+  async function fetchTopTracks(period = '7day') {
     const res  = await fetch(`${BASE}?method=user.gettoptracks&user=${username}&api_key=${apiKey}&format=json&limit=8&period=${period}`);
     const data = await res.json();
     return data.toptracks?.track ?? [];
@@ -78,9 +78,9 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
   }
 
   // ── RENDER HELPERS ─────────────────────────
-  function renderRecent(tracks: any[]) {
+  function renderRecent(tracks) {
     if (!tracks.length) return '<div class="lfm-empty">no recent tracks found</div>';
-    return tracks.map((t: any, i: number) => {
+    return tracks.map((t, i) => {
       const isNowPlaying = t['@attr']?.nowplaying === 'true';
       const artist = t.artist?.['#text'] ?? t.artist?.name ?? '—';
       const name   = t.name ?? '—';
@@ -99,9 +99,9 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
     }).join('');
   }
 
-  function renderTopTracks(tracks: any[]) {
+  function renderTopTracks(tracks) {
     if (!tracks.length) return '<div class="lfm-empty">no data for this period</div>';
-    return tracks.map((t: any, i: number) => {
+    return tracks.map((t, i) => {
       const artist = t.artist?.name ?? '—';
       const name   = t.name ?? '—';
       const plays  = parseInt(t.playcount ?? 0).toLocaleString();
@@ -119,9 +119,9 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
     }).join('');
   }
 
-  function renderTopArtists(artists: any[]) {
+  function renderTopArtists(artists) {
     if (!artists.length) return '<div class="lfm-empty">no artist data found</div>';
-    return artists.map((a: any, i: number) => {
+    return artists.map((a, i) => {
       const name  = a.name ?? '—';
       const plays = parseInt(a.playcount ?? 0).toLocaleString();
       const img   = a.image?.[1]?.['#text'];
@@ -150,7 +150,7 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
     }
   }
 
-  async function loadTopTracks(period: string = topTracksPeriod) {
+  async function loadTopTracks(period = topTracksPeriod) {
     const el = document.getElementById('list-top-tracks');
     if (!el) return;
     el.innerHTML = '<div class="lfm-loading">fetching tracks<span class="lfm-dots"></span></div>';
@@ -185,7 +185,7 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
   // ── TABS ───────────────────────────────────
   document.querySelectorAll('.lfm-tab').forEach(btn => {
     btn.addEventListener('click', () => {
-      const tab = (btn as HTMLElement).dataset.tab;
+      const tab = btn.dataset.tab;
       document.querySelectorAll('.lfm-tab').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.lfm-panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
@@ -200,7 +200,7 @@ const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
     btn.addEventListener('click', () => {
       document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      topTracksPeriod = (btn as HTMLElement).dataset.period ?? '7day';
+      topTracksPeriod = btn.dataset.period ?? '7day';
       loadTopTracks(topTracksPeriod);
     });
   });
