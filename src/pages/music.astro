@@ -1,15 +1,261 @@
 ---
 import Base from '../layouts/Base.astro';
-import LastFm from '../components/LastFm.astro';
 
+const apiKey   = import.meta.env.PUBLIC_LASTFM_API_KEY;
+const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
+const BASE     = 'https://ws.audioscrobbler.com/2.0/';
+
+async function get(params) {
+  const url = BASE + '?' + new URLSearchParams({ ...params, api_key: apiKey, format: 'json' });
+  const res  = await fetch(url);
+  return res.json();
+}
+
+const [recentData, topTracksData, topArtistsData, userInfo] = await Promise.all([
+  get({ method: 'user.getrecenttracks', user: username, limit: '8' }),
+  get({ method: 'user.gettoptracks',    user: username, limit: '8', period: 'overall' }),
+  get({ method: 'user.gettopartists',   user: username, limit: '8', period: 'overall' }),
+  get({ method: 'user.getinfo',         user: username }),
+]);
+
+const recent     = recentData.recenttracks?.track ?? [];
+const topTracks  = topTracksData.toptracks?.track ?? [];
+const topArtists = topArtistsData.topartists?.artist ?? [];
+const scrobbles  = parseInt(userInfo.user?.playcount ?? 0).toLocaleString();
+
+const maxTrackPlays  = parseInt(topTracks[0]?.playcount  ?? 1);
+const maxArtistPlays = parseInt(topArtists[0]?.playcount ?? 1);
+
+function cleanImg(img) {
+  return img && !img.includes('2a96cbd8b46e442fc41c2b86b821562f') ? img : null;
+}
 ---
 
 <Base title="Music" file="music.md" folder="music">
   <h1>MUSIC</h1>
+  <p>What I'm listening to. Scrobbled automatically from Spotify via <a href="https://www.last.fm" target="_blank" rel="noopener">Last.fm</a>.</p>
 
-  <p>
-    What I'm listening to. Scrobbled automatically from Spotify via <a href="https://www.last.fm" target="_blank" rel="noopener">Last.fm</a>.
-  </p>
+  <div class="lfm">
 
-  <LastFm />
+    <!-- ── RECENT ── -->
+    <h2>// RECENT</h2>
+    <div class="lfm-list">
+      {recent.map((t, i) => {
+        const isNow  = t['@attr']?.nowplaying === 'true';
+        const artist = t.artist?.['#text'] ?? t.artist?.name ?? '—';
+        const name   = t.name ?? '—';
+        const date   = t.date?.['#text'] ?? '';
+        const img    = cleanImg(t.image?.[1]?.['#text']);
+        return (
+          <div class={`lfm-row ${isNow ? 'now-playing' : ''}`}>
+            <span class="lfm-index">{isNow ? '▶' : String(i + 1).padStart(2, '0')}</span>
+            {img
+              ? <img class="lfm-art" src={img} alt="" loading="lazy" />
+              : <div class="lfm-art-placeholder">♪</div>
+            }
+            <div class="lfm-info">
+              <div class="lfm-track">{name}</div>
+              <div class="lfm-artist">{artist}</div>
+            </div>
+            {isNow
+              ? <span class="lfm-badge badge-live">▶ LIVE</span>
+              : <span class="lfm-badge badge-time">{date}</span>
+            }
+          </div>
+        );
+      })}
+    </div>
+
+    <!-- ── TOP TRACKS ── -->
+    <h2>// TOP TRACKS <span class="h2-sub">all time</span></h2>
+    <div class="lfm-list">
+      {topTracks.map((t, i) => {
+        const artist = t.artist?.name ?? '—';
+        const name   = t.name ?? '—';
+        const plays  = parseInt(t.playcount ?? 0);
+        const pct    = Math.round((plays / maxTrackPlays) * 100);
+        return (
+          <div class="lfm-row">
+            <span class="lfm-index">{String(i + 1).padStart(2, '0')}</span>
+            <div class="lfm-info">
+              <div class="lfm-track">{name}</div>
+              <div class="lfm-artist">{artist}</div>
+              <div class="lfm-bar-wrap">
+                <div class="lfm-bar" style={`width:${pct}%`}></div>
+              </div>
+            </div>
+            <span class="lfm-badge badge-plays">{plays.toLocaleString()} <span class="badge-unit">plays</span></span>
+          </div>
+        );
+      })}
+    </div>
+
+    <!-- ── TOP ARTISTS ── -->
+    <h2>// TOP ARTISTS <span class="h2-sub">all time</span></h2>
+    <div class="lfm-list">
+      {topArtists.map((a, i) => {
+        const name  = a.name ?? '—';
+        const plays = parseInt(a.playcount ?? 0);
+        const pct   = Math.round((plays / maxArtistPlays) * 100);
+        return (
+          <div class="lfm-row">
+            <span class="lfm-index">{String(i + 1).padStart(2, '0')}</span>
+            <div class="lfm-info">
+              <div class="lfm-track">{name}</div>
+              <div class="lfm-bar-wrap">
+                <div class="lfm-bar" style={`width:${pct}%`}></div>
+              </div>
+            </div>
+            <span class="lfm-badge badge-plays">{plays.toLocaleString()} <span class="badge-unit">scrobbles</span></span>
+          </div>
+        );
+      })}
+    </div>
+
+    <div class="lfm-footer">
+      <span>📻 <a href={`https://www.last.fm/user/${username}`} target="_blank" rel="noopener">last.fm/{username}</a></span>
+      <span>{scrobbles} total scrobbles</span>
+    </div>
+
+  </div>
 </Base>
+
+<style>
+  .lfm { max-width: 640px; margin-top: 8px; }
+
+  .lfm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 32px;
+  }
+
+  .lfm-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  }
+  .lfm-row:hover {
+    border-color: var(--accent);
+    background: var(--bg-panel);
+    transform: translateX(3px);
+  }
+  .lfm-row.now-playing {
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .lfm-row.now-playing .lfm-track { color: var(--accent); }
+
+  .lfm-index {
+    font-size: 11px;
+    color: var(--text-dim);
+    width: 16px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .lfm-art {
+    width: 38px;
+    height: 38px;
+    object-fit: cover;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .lfm-art-placeholder {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: var(--text-dim);
+  }
+
+  .lfm-info { flex: 1; min-width: 0; }
+  .lfm-track {
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+  }
+  .lfm-artist {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+  }
+
+  .lfm-bar-wrap {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+  .lfm-bar {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 2px;
+  }
+  .lfm-row:hover .lfm-bar { background: var(--accent); }
+
+  .lfm-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .badge-live {
+    color: var(--accent);
+    background: rgba(220,79,10,0.1);
+    border-color: rgba(220,79,10,0.3);
+    animation: lfm-pulse 2s ease infinite;
+  }
+  .badge-time {
+    color: var(--text-dim);
+    background: var(--bg);
+    border-color: var(--border);
+    font-weight: 400;
+    font-size: 10px;
+  }
+  .badge-plays {
+    color: var(--green);
+    background: rgba(133,153,0,0.08);
+    border-color: rgba(133,153,0,0.25);
+  }
+  .badge-unit { font-weight: 400; opacity: 0.7; }
+
+  @keyframes lfm-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .h2-sub { font-family: var(--mono); font-size: 10px; color: var(--text-dim); font-weight: 400; margin-left: 8px; }
+
+  .lfm-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: -20px;
+  }
+  .lfm-footer a { color: var(--text-dim); text-decoration: none; }
+  .lfm-footer a:hover { color: var(--accent); }
+</style>
