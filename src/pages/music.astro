@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+import LastFm from '../components/LastFm.astro';
+---
+
+<Base title="Music" file="music.md" folder="music">
+  <h1>MUSIC</h1>
+
+  <p>
+    What I'm listening to. Scrobbled automatically from Spotify via <a href="https://www.last.fm" target="_blank" rel="noopener">Last.fm</a>.
+  </p>
+
+  <LastFm />
+</Base>

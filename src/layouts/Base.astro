@@ -12,6 +12,7 @@ const currentPath = Astro.url.pathname;
 
 const navItems = [
   { label: 'me.md',       href: '/',           folder: 'about',      file: 'me.md' },
+  { label: 'music.md',    href: '/music',      folder: 'music',      file: 'music.md' },
   { label: 'projects.md', href: '/projects',   folder: 'projects',   file: 'projects.md' },
   { label: 'work.md',     href: '/experience', folder: 'experience', file: 'work.md' },
   { label: 'posts.md',    href: '/blog',       folder: 'blog',       file: 'posts.md' },
@@ -25,7 +26,7 @@ function isActive(href: string) {
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="solarized">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -34,6 +35,14 @@ function isActive(href: string) {
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </head>
 <body>
+
+  <!-- BOOT SCREEN -->
+  <div class="boot-screen" id="boot-screen" aria-hidden="true">
+    <div class="boot-inner">
+      <div class="boot-lines" id="boot-lines"></div>
+      <div class="boot-cursor" id="boot-cursor">▮</div>
+    </div>
+  </div>
 
   <div class="window">
 
@@ -50,17 +59,50 @@ function isActive(href: string) {
 
     <!-- TAB BAR -->
     <div class="tabbar">
-      <div class="tab active">
+      <!-- Desktop tabs -->
+      <div class="tab active desktop-only">
         <span class="tab-accent">⬤</span> Files
       </div>
-      <div class="tab muted">&gt;_ Terminal</div>
+      <div class="tab muted desktop-only">&gt;_ Terminal</div>
+
+      <!-- Theme picker (desktop) -->
+      <div class="theme-picker desktop-only" id="theme-picker">
+        <span class="theme-label">Theme:</span>
+        <div class="theme-dropdown" id="theme-dropdown">
+          <button class="theme-selected" id="theme-selected" aria-haspopup="true" aria-expanded="false">
+            Solarized Light <span class="dropdown-arrow">▾</span>
+          </button>
+          <ul class="theme-menu" id="theme-menu" role="menu">
+            <li role="menuitem" data-theme="solarized" class="active">Solarized Light</li>
+            <li role="menuitem" data-theme="matrix">Dark Matrix</li>
+            <li role="menuitem" data-theme="macintosh">Classic Macintosh</li>
+            <li role="menuitem" data-theme="blue-energy">Blue Energy</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Mobile: hamburger + breadcrumb -->
+      <div class="mobile-header mobile-only">
+        <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="mobile-breadcrumb">
+          <span class="bc-folder">{folder}</span>
+          <span class="bc-sep">›</span>
+          <span class="bc-file">{file}</span>
+        </div>
+        <!-- Mobile theme toggle -->
+        <button class="mobile-theme-btn" id="mobile-theme-btn" title="Change theme">◐</button>
+      </div>
     </div>
 
     <!-- MAIN -->
     <div class="main-layout">
 
       <!-- SIDEBAR -->
-      <nav class="sidebar" aria-label="Site navigation">
+      <nav class="sidebar" id="sidebar" aria-label="Site navigation">
         <div class="sidebar-prompt">
           <span class="green">user</span>@portfolio:~$&nbsp;<span class="cmd">ls -la</span>
         </div>
@@ -83,11 +125,23 @@ function isActive(href: string) {
             </a>
           </div>
         ))}
+
+        <!-- Mobile theme menu in sidebar -->
+        <div class="sidebar-theme-section mobile-only">
+          <div class="sidebar-theme-label">// theme</div>
+          <button class="sidebar-theme-item" data-theme="solarized">Solarized Light</button>
+          <button class="sidebar-theme-item" data-theme="matrix">Dark Matrix</button>
+          <button class="sidebar-theme-item" data-theme="macintosh">Classic Macintosh</button>
+          <button class="sidebar-theme-item" data-theme="blue-energy">Blue Energy</button>
+        </div>
       </nav>
+
+      <!-- MOBILE OVERLAY -->
+      <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
       <!-- CONTENT -->
       <div class="content-wrap">
-        <div class="content-header">
+        <div class="content-header desktop-only">
           <div class="traffic-lights small">
             <span class="dot r"></span>
             <span class="dot y"></span>
@@ -120,6 +174,260 @@ function isActive(href: string) {
 </body>
 </html>
 
+<script>
+  // ─────────────────────────────────────────
+  // THEME DEFINITIONS
+  // ─────────────────────────────────────────
+  const themes: Record<string, Record<string, string>> = {
+    solarized: {
+      '--bg':        '#fdf6e3',
+      '--bg-dark':   '#eee8d5',
+      '--bg-panel':  '#f5eedc',
+      '--sidebar':   '#e8e0cc',
+      '--border':    '#ccc4b0',
+      '--text':      '#4a4540',
+      '--text-dim':  '#93a1a1',
+      '--accent':    '#dc4f0a',
+      '--accent2':   '#cb4b16',
+      '--teal':      '#2aa198',
+      '--blue':      '#268bd2',
+      '--green':     '#859900',
+      '--yellow':    '#b58900',
+      '--body-bg':   '#d0c8b0',
+      '--pixel-color': '#dc4f0a',
+    },
+    matrix: {
+      '--bg':        '#0d0d0d',
+      '--bg-dark':   '#111111',
+      '--bg-panel':  '#0a0a0a',
+      '--sidebar':   '#111111',
+      '--border':    '#1a3a1a',
+      '--text':      '#00cc44',
+      '--text-dim':  '#2a6b2a',
+      '--accent':    '#00ff66',
+      '--accent2':   '#00cc44',
+      '--teal':      '#00cc44',
+      '--blue':      '#00ff66',
+      '--green':     '#00ff66',
+      '--yellow':    '#ccff00',
+      '--body-bg':   '#000000',
+      '--pixel-color': '#00ff66',
+    },
+    macintosh: {
+      '--bg':        '#dddddd',
+      '--bg-dark':   '#c0c0c0',
+      '--bg-panel':  '#e8e8e8',
+      '--sidebar':   '#c8c8c8',
+      '--border':    '#555555',
+      '--text':      '#111111',
+      '--text-dim':  '#555555',
+      '--accent':    '#000000',
+      '--accent2':   '#333333',
+      '--teal':      '#333333',
+      '--blue':      '#000080',
+      '--green':     '#006400',
+      '--yellow':    '#8b6914',
+      '--body-bg':   '#aaaaaa',
+      '--pixel-color': '#000000',
+    },
+    'blue-energy': {
+      '--bg':        '#e7f0ff',
+      '--bg-dark':   '#dce8ff',
+      '--bg-panel':  '#edf4ff',
+      '--sidebar':   '#d4e4ff',
+      '--border':    '#a8c4f0',
+      '--text':      '#1a2a4a',
+      '--text-dim':  '#5a7aaa',
+      '--accent':    '#4392f1',
+      '--accent2':   '#2a7adc',
+      '--teal':      '#0ea5e9',
+      '--blue':      '#4392f1',
+      '--green':     '#22c55e',
+      '--yellow':    '#f59e0b',
+      '--body-bg':   '#c8d8f8',
+      '--pixel-color': '#4392f1',
+    },
+  };
+
+  const themeNames: Record<string, string> = {
+    solarized:    'Solarized Light',
+    matrix:       'Dark Matrix',
+    macintosh:    'Classic Macintosh',
+    'blue-energy':'Blue Energy',
+  };
+
+  // Extra per-theme class overrides for things CSS vars can't handle
+  const themeBodyClasses: Record<string, string> = {
+    solarized:    '',
+    matrix:       'theme-matrix',
+    macintosh:    'theme-mac',
+    'blue-energy':'',
+  };
+
+  function applyTheme(name: string) {
+    const vars = themes[name];
+    if (!vars) return;
+    const root = document.documentElement;
+    Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
+    document.body.style.background = vars['--body-bg'];
+
+    // Body class for special per-theme overrides
+    document.body.className = themeBodyClasses[name] || '';
+
+    // Update html data-theme
+    root.setAttribute('data-theme', name);
+
+    // Update dropdown label
+    const selected = document.getElementById('theme-selected');
+    if (selected) selected.innerHTML = `${themeNames[name]} <span class="dropdown-arrow">▾</span>`;
+
+    // Update active states in menus
+    document.querySelectorAll('[data-theme]').forEach(el => {
+      if (el.tagName === 'LI' || el.classList.contains('sidebar-theme-item')) {
+        el.classList.toggle('active', (el as HTMLElement).dataset.theme === name);
+      }
+    });
+
+    sessionStorage.setItem('theme', name);
+  }
+
+  // Restore theme from session
+  const savedTheme = sessionStorage.getItem('theme') || 'solarized';
+  applyTheme(savedTheme);
+
+  // ── DESKTOP DROPDOWN ──
+  const themeSelected = document.getElementById('theme-selected');
+  const themeMenu     = document.getElementById('theme-menu');
+
+  themeSelected?.addEventListener('click', () => {
+    const open = themeMenu?.classList.toggle('open');
+    themeSelected.setAttribute('aria-expanded', String(open));
+  });
+
+  themeMenu?.querySelectorAll('li').forEach(item => {
+    item.addEventListener('click', () => {
+      applyTheme((item as HTMLElement).dataset.theme || 'solarized');
+      themeMenu.classList.remove('open');
+      themeSelected?.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('theme-picker')?.contains(e.target as Node)) {
+      themeMenu?.classList.remove('open');
+      themeSelected?.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // ── MOBILE SIDEBAR THEME BUTTONS ──
+  document.querySelectorAll('.sidebar-theme-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyTheme((btn as HTMLElement).dataset.theme || 'solarized');
+    });
+  });
+</script>
+
+<script>
+  // ─────────────────────────────────────────
+  // BOOT SEQUENCE
+  // ─────────────────────────────────────────
+  const bootScreen = document.getElementById('boot-screen');
+  const bootLines  = document.getElementById('boot-lines');
+  const bootCursor = document.getElementById('boot-cursor');
+
+  const lines = [
+    { prompt: '>', cmd: 'initializing portfolio v2.0',         status: null,  type: 'highlight', delay: 0    },
+    { prompt: '$', cmd: 'checking system requirements......',   status: 'OK',  type: '',          delay: 400  },
+    { prompt: '$', cmd: 'loading node modules.............',    status: 'OK',  type: '',          delay: 750  },
+    { prompt: '$', cmd: 'mounting filesystem...............',   status: 'OK',  type: '',          delay: 1050 },
+    { prompt: '$', cmd: 'verifying SSL certificate.........',   status: 'OK',  type: '',          delay: 1300 },
+    { prompt: '$', cmd: 'connecting jamesruntas.ca........',   status: 'OK',  type: '',          delay: 1550 },
+    { prompt: '$', cmd: 'authenticating user@jamesruntas.ca',  status: 'OK',  type: '',          delay: 1850 },
+    { prompt: '$', cmd: 'spawning terminal UI.............',    status: 'OK',  type: '',          delay: 2150 },
+    { prompt: '>', cmd: 'welcome, james.',                      status: null,  type: 'highlight', delay: 2500 },
+    { prompt: ' ', cmd: '# press any key to continue',         status: null,  type: 'dim',       delay: 2700 },
+  ];
+
+  const hasBooted = sessionStorage.getItem('booted');
+
+  if (hasBooted) {
+    bootScreen?.classList.add('hidden');
+  } else {
+    sessionStorage.setItem('booted', 'true');
+
+    lines.forEach(({ prompt, cmd, status, type, delay }) => {
+      setTimeout(() => {
+        if (!bootLines) return;
+        const el = document.createElement('div');
+        el.className = `boot-line ${type}`;
+        el.innerHTML = `
+          <span class="prompt">${prompt}</span>
+          <span class="cmd">${cmd}</span>
+          ${status ? `<span class="status ok">[${status}]</span>` : ''}
+        `;
+        bootLines.appendChild(el);
+        bootLines.scrollTop = bootLines.scrollHeight;
+      }, delay);
+    });
+
+    setTimeout(() => { bootCursor?.classList.add('visible'); }, 2800);
+
+    const dismiss = () => {
+      bootScreen?.classList.add('hidden');
+      document.removeEventListener('keydown', dismiss);
+      document.removeEventListener('click', dismiss);
+      document.removeEventListener('touchstart', dismiss);
+    };
+
+    setTimeout(dismiss, 3200);
+    setTimeout(() => {
+      document.addEventListener('keydown', dismiss);
+      document.addEventListener('click', dismiss);
+      document.addEventListener('touchstart', dismiss);
+    }, 500);
+  }
+</script>
+
+<script>
+  // ─────────────────────────────────────────
+  // HAMBURGER / MOBILE SIDEBAR
+  // ─────────────────────────────────────────
+  const hamburger = document.getElementById('hamburger');
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebar-overlay');
+
+  function openSidebar() {
+    sidebar?.classList.add('open');
+    overlay?.classList.add('open');
+    hamburger?.setAttribute('aria-expanded', 'true');
+    hamburger?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar?.classList.remove('open');
+    overlay?.classList.remove('open');
+    hamburger?.setAttribute('aria-expanded', 'false');
+    hamburger?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  hamburger?.addEventListener('click', () => {
+    sidebar?.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+
+  overlay?.addEventListener('click', closeSidebar);
+
+  sidebar?.querySelectorAll('.tree-file').forEach(link => {
+    link.addEventListener('click', closeSidebar);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
+  });
+</script>
+
 <style>
   /* ── WINDOW ── */
   .window {
@@ -133,6 +441,7 @@ function isActive(href: string) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: background 0.2s, box-shadow 0.2s;
   }
 
   /* ── TITLE BAR ── */
@@ -145,10 +454,11 @@ function isActive(href: string) {
     gap: 12px;
     flex-shrink: 0;
     user-select: none;
+    transition: background 0.2s;
   }
   .traffic-lights { display: flex; gap: 7px; }
   .traffic-lights.small .dot { width: 10px; height: 10px; }
-  .dot { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
+  .dot { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); flex-shrink: 0; }
   .dot.r { background: #ff5f57; }
   .dot.y { background: #febc2e; }
   .dot.g { background: #28c840; }
@@ -160,7 +470,10 @@ function isActive(href: string) {
     background: var(--bg-dark);
     border-bottom: 1px solid var(--border);
     display: flex;
+    align-items: stretch;
     flex-shrink: 0;
+    min-height: 34px;
+    transition: background 0.2s;
   }
   .tab {
     padding: 7px 18px;
@@ -170,12 +483,150 @@ function isActive(href: string) {
     display: flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
   }
-  .tab.active { background: var(--bg); color: var(--text); border-bottom: 2px solid var(--accent); margin-bottom: -1px; }
+  .tab.active {
+    background: var(--bg);
+    color: var(--text);
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: -1px;
+  }
   .tab-accent { color: var(--accent); }
 
+  /* ── THEME PICKER ── */
+  .theme-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-dim);
+    border-left: 1px solid var(--border);
+  }
+  .theme-label { white-space: nowrap; }
+
+  .theme-dropdown { position: relative; }
+
+  .theme-selected {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--blue);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .theme-selected:hover { border-color: var(--accent); color: var(--accent); }
+  .dropdown-arrow { font-size: 10px; color: var(--text-dim); }
+
+  .theme-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    list-style: none;
+    padding: 4px 0;
+    z-index: 50;
+    min-width: 170px;
+  }
+  .theme-menu.open { display: block; }
+
+  .theme-menu li {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 14px;
+    cursor: pointer;
+    color: var(--text);
+    transition: background 0.1s, color 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .theme-menu li::before {
+    content: '  ';
+    color: var(--accent);
+    font-size: 10px;
+    width: 10px;
+  }
+  .theme-menu li.active::before { content: '▶'; }
+  .theme-menu li:hover { background: var(--bg-dark); color: var(--accent); }
+  .theme-menu li.active { color: var(--accent); font-weight: 700; }
+
+  /* ── MOBILE HEADER ── */
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    flex: 1;
+  }
+  .mobile-breadcrumb {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    flex: 1;
+  }
+  .bc-folder { color: var(--text-dim); }
+  .bc-sep    { color: var(--border); }
+  .bc-file   { color: var(--text); }
+  .bc-type   { color: var(--text-dim); }
+
+  .mobile-theme-btn {
+    font-size: 16px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    padding: 3px 7px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .mobile-theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── HAMBURGER ── */
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 7px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .hamburger:hover { border-color: var(--accent); background: rgba(220,79,10,0.06); }
+  .hamburger span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: var(--text-dim);
+    border-radius: 2px;
+    transition: transform 0.2s, opacity 0.2s, background 0.15s;
+    transform-origin: center;
+  }
+  .hamburger.active span { background: var(--accent); }
+  .hamburger.active span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
   /* ── MAIN LAYOUT ── */
-  .main-layout { display: flex; flex: 1; overflow: hidden; }
+  .main-layout { display: flex; flex: 1; overflow: hidden; position: relative; }
 
   /* ── SIDEBAR ── */
   .sidebar {
@@ -186,10 +637,11 @@ function isActive(href: string) {
     overflow-y: auto;
     padding: 12px 0;
     flex-shrink: 0;
+    transition: background 0.2s;
   }
   .sidebar-prompt { font-size: 11px; color: var(--text-dim); padding: 0 12px 12px; }
   .green { color: var(--green); }
-  .cmd { color: var(--text); }
+  .cmd   { color: var(--text); }
 
   .tree-group { margin-bottom: 2px; }
   .tree-folder {
@@ -203,7 +655,7 @@ function isActive(href: string) {
     cursor: default;
     user-select: none;
   }
-  .icon-arrow { font-size: 10px; color: var(--text-dim); }
+  .icon-arrow  { font-size: 10px; color: var(--text-dim); }
   .tree-file {
     display: flex;
     align-items: center;
@@ -214,12 +666,49 @@ function isActive(href: string) {
     text-decoration: none;
     transition: background 0.1s;
   }
-  .tree-file:hover { background: rgba(0,0,0,0.06); }
+  .tree-file:hover { background: rgba(128,128,128,0.12); }
   .tree-file.active { background: var(--blue); color: #fff; }
   .tree-file.active .icon-file { filter: brightness(10); }
-  .indent { width: 14px; flex-shrink: 0; }
-  .icon-file { color: var(--teal); font-size: 13px; }
+  .indent     { width: 14px; flex-shrink: 0; }
+  .icon-file  { color: var(--teal); font-size: 13px; }
   .icon-folder { font-size: 13px; }
+
+  /* ── SIDEBAR THEME SECTION (mobile) ── */
+  .sidebar-theme-section {
+    margin-top: 20px;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--border);
+  }
+  .sidebar-theme-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 0 12px 8px;
+  }
+  .sidebar-theme-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 12px 6px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+  }
+  .sidebar-theme-item:hover { background: rgba(128,128,128,0.12); color: var(--accent); }
+  .sidebar-theme-item.active { color: var(--accent); font-weight: 700; }
+
+  /* ── OVERLAY ── */
+  .sidebar-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 9;
+  }
+  .sidebar-overlay.open { display: block; }
 
   /* ── CONTENT ── */
   .content-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -231,12 +720,9 @@ function isActive(href: string) {
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
+    transition: background 0.2s;
   }
   .breadcrumb { font-size: 12px; display: flex; align-items: center; gap: 5px; }
-  .bc-folder { color: var(--text-dim); }
-  .bc-sep { color: var(--border); }
-  .bc-file { color: var(--text); }
-  .bc-type { color: var(--text-dim); }
   .content-body { flex: 1; overflow-y: auto; padding: 40px 56px; }
 
   /* ── STATUS BAR ── */
@@ -249,15 +735,152 @@ function isActive(href: string) {
     font-size: 11px;
     color: var(--text-dim);
     flex-shrink: 0;
+    transition: background 0.2s;
   }
   .status-dot { color: var(--green); }
+
+  /* ── BOOT SCREEN ── */
+  .boot-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+  }
+  .boot-screen.hidden { display: none; }
+  .boot-inner {
+    width: min(560px, 90vw);
+    padding: 40px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  }
+  .boot-lines { display: flex; flex-direction: column; gap: 10px; }
+  .boot-line {
+    font-size: 13px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: bootFadeIn 0.15s ease forwards;
+  }
+  .boot-line .prompt { color: var(--green); flex-shrink: 0; }
+  .boot-line .cmd    { color: var(--text); }
+  .boot-line .status { margin-left: auto; flex-shrink: 0; }
+  .boot-line .status.ok   { color: var(--green); }
+  .boot-line.highlight .cmd { color: var(--accent); font-weight: 700; }
+  .boot-line.dim .cmd { color: var(--text-dim); font-size: 12px; }
+  .boot-cursor {
+    color: var(--accent);
+    font-size: 14px;
+    margin-top: 12px;
+    animation: blink 1s step-end infinite;
+    opacity: 0;
+  }
+  .boot-cursor.visible { opacity: 1; }
+  @keyframes bootFadeIn {
+    from { opacity: 0; transform: translateX(-4px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ── MATRIX THEME EXTRAS ── */
+  body.theme-matrix .window {
+    box-shadow: 0 0 40px rgba(0,255,80,0.15), 0 0 0 1px #1a3a1a;
+  }
+  body.theme-matrix .dot.r { background: #ff5f57; }
+  body.theme-matrix .dot.y { background: #febc2e; }
+  body.theme-matrix .dot.g { background: #28c840; }
+  body.theme-matrix .tree-file.active { background: #003300; color: #00ff66; }
+  body.theme-matrix .theme-selected { color: #00ff66; }
+  body.theme-matrix .statusbar::after {
+    content: ' | matrix v4.2.1';
+    color: #1a5a1a;
+  }
+
+  /* ── MACINTOSH THEME EXTRAS ── */
+  body.theme-mac .window {
+    border-radius: 4px;
+    box-shadow: 4px 4px 0 #555, 0 0 0 2px #555;
+  }
+  body.theme-mac .titlebar {
+    background: repeating-linear-gradient(
+      to bottom,
+      #c0c0c0 0px, #c0c0c0 1px,
+      #888888 1px, #888888 2px
+    );
+    border-bottom: 2px solid #555;
+  }
+  body.theme-mac .titlebar-center {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #fff;
+    text-shadow: 1px 1px 0 #000;
+  }
+  body.theme-mac .tabbar {
+    background: #c0c0c0;
+    border-bottom: 2px solid #555;
+  }
+  body.theme-mac .tab.active {
+    background: #ffffff;
+    border: 2px solid #555;
+    border-bottom: none;
+    border-radius: 3px 3px 0 0;
+  }
+  body.theme-mac .sidebar {
+    border-right: 2px solid #555;
+  }
+  body.theme-mac .tree-file.active {
+    background: #000080;
+    color: #ffffff;
+  }
+  body.theme-mac .statusbar {
+    border-top: 2px solid #555;
+    background: #c0c0c0;
+  }
+  body.theme-mac .content-header {
+    border-bottom: 2px solid #555;
+  }
+  body.theme-mac .theme-selected {
+    border: 2px solid #555;
+    border-radius: 2px;
+    box-shadow: 1px 1px 0 #555;
+  }
+
+  /* ── VISIBILITY HELPERS ── */
+  .desktop-only { display: flex; }
+  .mobile-only  { display: none; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 700px) {
     body { padding: 0; }
-    .window { height: 100vh; border-radius: 0; }
-    .sidebar { width: 180px; min-width: 180px; }
-    .content-body { padding: 24px 20px; }
+    .window { height: 100vh; height: 100dvh; border-radius: 0; }
+    .desktop-only { display: none !important; }
+    .mobile-only  { display: flex !important; }
     .titlebar-center { display: none; }
+    .sidebar {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      z-index: 10;
+      width: 240px;
+      min-width: 240px;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      box-shadow: none;
+    }
+    .sidebar.open {
+      transform: translateX(0);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+    }
+    .content-body { padding: 24px 20px; }
+    .sidebar-theme-section { display: block !important; }
+  }
+
+  @media (min-width: 701px) {
+    .sidebar-theme-section { display: none !important; }
   }
 </style>

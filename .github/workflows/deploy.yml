@@ -32,6 +32,9 @@ jobs:
 
       - name: Build Astro site
         run: npm run build
+        env:
+          PUBLIC_LASTFM_API_KEY: ${{ secrets.PUBLIC_LASTFM_API_KEY }}
+          PUBLIC_LASTFM_USERNAME: ${{ secrets.PUBLIC_LASTFM_USERNAME }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
