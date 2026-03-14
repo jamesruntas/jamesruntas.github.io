@@ -1,261 +1,358 @@
 ---
 import Base from '../layouts/Base.astro';
+import data from '../data/music.json';
 
-const apiKey   = import.meta.env.PUBLIC_LASTFM_API_KEY;
-const username = import.meta.env.PUBLIC_LASTFM_USERNAME;
-const BASE     = 'https://ws.audioscrobbler.com/2.0/';
+const { topTracks, topTracks200, topArtists, topAlbums, scrobbles, username, generatedAt } = data;
 
-async function get(params) {
-  const url = BASE + '?' + new URLSearchParams({ ...params, api_key: apiKey, format: 'json' });
-  const res  = await fetch(url);
-  return res.json();
+const maxTrack  = topTracks[0]?.playcount  ?? 1;
+const maxArtist = topArtists[0]?.playcount ?? 1;
+const maxAlbum  = topAlbums[0]?.playcount  ?? 1;
+
+const updated = new Date(generatedAt).toLocaleDateString('en-CA', {
+  year: 'numeric', month: 'short', day: 'numeric'
+});
+
+// ── CHART 1: Artist dominance from top 200 tracks ──────────────
+const artistTotals: Record<string, number> = {};
+topTracks200.forEach(t => {
+  artistTotals[t.artist] = (artistTotals[t.artist] ?? 0) + t.playcount;
+});
+const totalTrackPlays = Object.values(artistTotals).reduce((a, b) => a + b, 0);
+const artistSlices = Object.entries(artistTotals)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 8)
+  .map(([name, plays]) => ({ name, plays, pct: plays / totalTrackPlays }));
+// Collapse the rest into "Others"
+const topSliceTotal = artistSlices.reduce((a, s) => a + s.plays, 0);
+if (topSliceTotal < totalTrackPlays) {
+  artistSlices.push({ name: 'Others', plays: totalTrackPlays - topSliceTotal, pct: (totalTrackPlays - topSliceTotal) / totalTrackPlays });
 }
 
-const [recentData, topTracksData, topArtistsData, userInfo] = await Promise.all([
-  get({ method: 'user.getrecenttracks', user: username, limit: '8' }),
-  get({ method: 'user.gettoptracks',    user: username, limit: '8', period: 'overall' }),
-  get({ method: 'user.gettopartists',   user: username, limit: '8', period: 'overall' }),
-  get({ method: 'user.getinfo',         user: username }),
-]);
+// Build donut segments
+const DONUT_COLORS = ['#dc4f0a','#2aa198','#268bd2','#859900','#b58900','#6c71c4','#d33682','#cb4b16','#93a1a1'];
+const donutR = 80, donutCx = 110, donutCy = 110, gap = 0.02;
+let donutAngle = -Math.PI / 2;
+const donutSegments = artistSlices.map((s, i) => {
+  const sweep = s.pct * Math.PI * 2 - gap;
+  const x1 = donutCx + donutR * Math.cos(donutAngle);
+  const y1 = donutCy + donutR * Math.sin(donutAngle);
+  donutAngle += sweep + gap;
+  const x2 = donutCx + donutR * Math.cos(donutAngle);
+  const y2 = donutCy + donutR * Math.sin(donutAngle);
+  const large = sweep > Math.PI ? 1 : 0;
+  const midAngle = donutAngle - (sweep + gap) / 2;
+  return {
+    ...s,
+    color: DONUT_COLORS[i % DONUT_COLORS.length],
+    d: `M ${donutCx} ${donutCy} L ${x1} ${y1} A ${donutR} ${donutR} 0 ${large} 1 ${x2} ${y2} Z`,
+    midAngle,
+  };
+});
 
-const recent     = recentData.recenttracks?.track ?? [];
-const topTracks  = topTracksData.toptracks?.track ?? [];
-const topArtists = topArtistsData.topartists?.artist ?? [];
-const scrobbles  = parseInt(userInfo.user?.playcount ?? 0).toLocaleString();
-
-const maxTrackPlays  = parseInt(topTracks[0]?.playcount  ?? 1);
-const maxArtistPlays = parseInt(topArtists[0]?.playcount ?? 1);
-
-function cleanImg(img) {
-  return img && !img.includes('2a96cbd8b46e442fc41c2b86b821562f') ? img : null;
+// ── CHART 2: Album vs Artist loyalty ─────────────────────────
+// Normalize artist names for comparison (handle $ vs S etc.)
+function normalizeName(name: string) {
+  return name.toLowerCase().replace(/\$/g, 's').replace(/[^a-z0-9]/g, '');
 }
+
+const artistAlbumCount: Record<string, number> = {};
+topAlbums.forEach(a => {
+  const key = normalizeName(a.artist);
+  artistAlbumCount[key] = (artistAlbumCount[key] ?? 0) + 1;
+});
+const loyaltyData = topArtists.slice(0, 15).map(a => ({
+  name: a.name,
+  artistPlays: a.playcount,
+  albumCount: artistAlbumCount[normalizeName(a.name)] ?? 0,
+}));
+const maxLoyaltyPlays = loyaltyData[0]?.artistPlays ?? 1;
+
+// ── CHART 3: Play count cliff ─────────────────────────────────
+const cliffW = 580, cliffH = 120, cliffPad = { l: 40, r: 10, t: 10, b: 24 };
+const cliffInnerW = cliffW - cliffPad.l - cliffPad.r;
+const cliffInnerH = cliffH - cliffPad.t - cliffPad.b;
+const cliffPoints = topTracks.map((t, i) => {
+  const x = cliffPad.l + (i / (topTracks.length - 1)) * cliffInnerW;
+  const y = cliffPad.t + (1 - t.playcount / maxTrack) * cliffInnerH;
+  return { x, y, t };
+});
+const cliffPath = cliffPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+const cliffFill = cliffPath
+  + ` L ${cliffPoints[cliffPoints.length-1].x} ${cliffPad.t + cliffInnerH}`
+  + ` L ${cliffPoints[0].x} ${cliffPad.t + cliffInnerH} Z`;
 ---
 
 <Base title="Music" file="music.md" folder="music">
   <h1>MUSIC</h1>
-  <p>What I'm listening to. Scrobbled automatically from Spotify via <a href="https://www.last.fm" target="_blank" rel="noopener">Last.fm</a>.</p>
+  <p>
+    What I'm listening to — scrobbled from Spotify via
+    <a href={`https://www.last.fm/user/${username}`} target="_blank" rel="noopener">Last.fm</a>.
+    <span class="updated">Updated {updated} · {scrobbles.toLocaleString()} scrobbles</span>
+  </p>
 
   <div class="lfm">
 
-    <!-- ── RECENT ── -->
-    <h2>// RECENT</h2>
-    <div class="lfm-list">
-      {recent.map((t, i) => {
-        const isNow  = t['@attr']?.nowplaying === 'true';
-        const artist = t.artist?.['#text'] ?? t.artist?.name ?? '—';
-        const name   = t.name ?? '—';
-        const date   = t.date?.['#text'] ?? '';
-        const img    = cleanImg(t.image?.[1]?.['#text']);
-        return (
-          <div class={`lfm-row ${isNow ? 'now-playing' : ''}`}>
-            <span class="lfm-index">{isNow ? '▶' : String(i + 1).padStart(2, '0')}</span>
-            {img
-              ? <img class="lfm-art" src={img} alt="" loading="lazy" />
-              : <div class="lfm-art-placeholder">♪</div>
-            }
-            <div class="lfm-info">
-              <div class="lfm-track">{name}</div>
-              <div class="lfm-artist">{artist}</div>
-            </div>
-            {isNow
-              ? <span class="lfm-badge badge-live">▶ LIVE</span>
-              : <span class="lfm-badge badge-time">{date}</span>
-            }
-          </div>
-        );
-      })}
-    </div>
+    <!-- ══════════════════════════════════════ -->
+    <!-- INSIGHTS                               -->
+    <!-- ══════════════════════════════════════ -->
+    <h2>// INSIGHTS</h2>
+    <div class="charts-grid">
 
-    <!-- ── TOP TRACKS ── -->
-    <h2>// TOP TRACKS <span class="h2-sub">all time</span></h2>
-    <div class="lfm-list">
-      {topTracks.map((t, i) => {
-        const artist = t.artist?.name ?? '—';
-        const name   = t.name ?? '—';
-        const plays  = parseInt(t.playcount ?? 0);
-        const pct    = Math.round((plays / maxTrackPlays) * 100);
-        return (
-          <div class="lfm-row">
-            <span class="lfm-index">{String(i + 1).padStart(2, '0')}</span>
-            <div class="lfm-info">
-              <div class="lfm-track">{name}</div>
-              <div class="lfm-artist">{artist}</div>
-              <div class="lfm-bar-wrap">
-                <div class="lfm-bar" style={`width:${pct}%`}></div>
+      <!-- CHART 1: Artist Dominance Donut -->
+      <div class="chart-card chart-wide">
+        <div class="chart-title">Artist Dominance <span class="chart-sub">% of top 200 track plays</span></div>
+        <div class="donut-wrap">
+          <svg viewBox="0 0 220 220" width="220" height="220" class="donut-svg">
+            {donutSegments.map(s => (
+              <path d={s.d} fill={s.color} class="donut-slice" />
+            ))}
+            <circle cx={donutCx} cy={donutCy} r="44" fill="var(--bg-dark)" />
+            <text x={donutCx} y={donutCy - 6} text-anchor="middle" class="donut-center-num">{artistSlices[0] ? Math.round(artistSlices[0].pct * 100) + '%' : ''}</text>
+            <text x={donutCx} y={donutCy + 12} text-anchor="middle" class="donut-center-label">{artistSlices[0]?.name.split(' ')[0] ?? ''}</text>
+          </svg>
+          <div class="donut-legend">
+            {donutSegments.map(s => (
+              <div class="legend-row">
+                <span class="legend-dot" style={`background:${s.color}`}></span>
+                <span class="legend-name">{s.name}</span>
+                <span class="legend-pct">{Math.round(s.pct * 100)}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART 3: Play Count Cliff -->
+      <div class="chart-card chart-wide">
+        <div class="chart-title">Play Count Cliff <span class="chart-sub">top 25 tracks dropoff</span></div>
+        <svg viewBox={`0 0 ${cliffW} ${cliffH}`} width="100%" class="cliff-svg">
+          <!-- fill -->
+          <path d={cliffFill} fill="var(--teal)" opacity="0.12" />
+          <!-- line -->
+          <path d={cliffPath} fill="none" stroke="var(--teal)" stroke-width="2" stroke-linejoin="round" />
+          <!-- dots -->
+          {cliffPoints.map(p => (
+            <circle cx={p.x} cy={p.y} r="3" fill="var(--teal)" class="cliff-dot">
+              <title>{p.t.name} — {p.t.playcount} plays</title>
+            </circle>
+          ))}
+          <!-- y axis label -->
+          <text x={cliffPad.l - 4} y={cliffPad.t + 4} text-anchor="end" class="cliff-label">{maxTrack}</text>
+          <text x={cliffPad.l - 4} y={cliffPad.t + cliffInnerH + 4} text-anchor="end" class="cliff-label">0</text>
+          <!-- x axis labels -->
+          <text x={cliffPoints[0]?.x} y={cliffH - 4} text-anchor="middle" class="cliff-label">#1</text>
+          <text x={cliffPoints[cliffPoints.length-1]?.x} y={cliffH - 4} text-anchor="middle" class="cliff-label">#{topTracks.length}</text>
+        </svg>
+        <div class="cliff-stats">
+          <div class="cliff-stat">
+            <span class="cliff-stat-val">{Math.round((1 - topTracks[1]?.playcount / maxTrack) * 100)}%</span>
+            <span class="cliff-stat-label">drop from #1→#2</span>
+          </div>
+          <div class="cliff-stat">
+            <span class="cliff-stat-val">{Math.round((1 - topTracks[topTracks.length-1]?.playcount / maxTrack) * 100)}%</span>
+            <span class="cliff-stat-label">drop from #1→#25</span>
+          </div>
+          <div class="cliff-stat">
+            <span class="cliff-stat-val">{Math.round(topTracks.reduce((a,t) => a + t.playcount, 0) / topTracks.length)}</span>
+            <span class="cliff-stat-label">avg plays</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART 2: Album vs Artist Loyalty -->
+      <div class="chart-card chart-wide">
+        <div class="chart-title">Artist Loyalty <span class="chart-sub">scrobbles vs album spread in my top 50</span></div>
+        <div class="loyalty-list">
+          {loyaltyData.map(a => (
+            <div class="loyalty-row">
+              <span class="loyalty-name">{a.name}</span>
+              <div class="loyalty-bars">
+                <div class="loyalty-bar-wrap">
+                  <div class="loyalty-bar bar-plays" style={`width:${Math.round((a.artistPlays / maxLoyaltyPlays) * 100)}%`}></div>
+                </div>
+                <span class="loyalty-plays">{a.artistPlays.toLocaleString()}</span>
+              </div>
+              <div class="loyalty-albums">
+                {Array.from({length: Math.max(topAlbums.length > 0 ? 5 : 0, 5)}).map((_, j) => (
+                  <span class={`album-pip ${j < a.albumCount ? 'filled' : ''}`}></span>
+                ))}
+                <span class="loyalty-album-count">{a.albumCount} {a.albumCount === 1 ? 'album' : 'albums'}</span>
               </div>
             </div>
-            <span class="lfm-badge badge-plays">{plays.toLocaleString()} <span class="badge-unit">plays</span></span>
-          </div>
-        );
-      })}
+          ))}
+        </div>
+        <div class="loyalty-legend">
+          <span><span class="bar-plays-dot"></span> scrobbles</span>
+          <span><span class="album-pip filled"></span> album in my top 25</span>
+        </div>
+      </div>
+
     </div>
 
-    <!-- ── TOP ARTISTS ── -->
-    <h2>// TOP ARTISTS <span class="h2-sub">all time</span></h2>
+    <!-- ══════════════════════════════════════ -->
+    <!-- LISTS                                  -->
+    <!-- ══════════════════════════════════════ -->
+    <h2>// TOP TRACKS</h2>
     <div class="lfm-list">
-      {topArtists.map((a, i) => {
-        const name  = a.name ?? '—';
-        const plays = parseInt(a.playcount ?? 0);
-        const pct   = Math.round((plays / maxArtistPlays) * 100);
-        return (
-          <div class="lfm-row">
-            <span class="lfm-index">{String(i + 1).padStart(2, '0')}</span>
-            <div class="lfm-info">
-              <div class="lfm-track">{name}</div>
-              <div class="lfm-bar-wrap">
-                <div class="lfm-bar" style={`width:${pct}%`}></div>
-              </div>
+      {topTracks.map((t, i) => (
+        <div class="lfm-row">
+          <span class="lfm-index">{String(i + 1).padStart(2, '0')}</span>
+          <div class="lfm-info">
+            <div class="lfm-track">{t.name}</div>
+            <div class="lfm-artist">{t.artist}</div>
+            <div class="lfm-bar-wrap">
+              <div class="lfm-bar" style={`width:${Math.round((t.playcount / maxTrack) * 100)}%`}></div>
             </div>
-            <span class="lfm-badge badge-plays">{plays.toLocaleString()} <span class="badge-unit">scrobbles</span></span>
           </div>
-        );
-      })}
+          <span class="lfm-badge badge-plays">{t.playcount.toLocaleString()} <span class="badge-unit">plays</span></span>
+        </div>
+      ))}
     </div>
 
-    <div class="lfm-footer">
-      <span>📻 <a href={`https://www.last.fm/user/${username}`} target="_blank" rel="noopener">last.fm/{username}</a></span>
-      <span>{scrobbles} total scrobbles</span>
+    <h2>// TOP ALBUMS</h2>
+    <div class="lfm-list">
+      {topAlbums.slice(0, 25).map((a, i) => (
+        <div class="lfm-row">
+          <span class="lfm-index">{String(i + 1).padStart(2, '0')}</span>
+          {a.image
+            ? <img class="lfm-art" src={a.image} alt="" loading="lazy" />
+            : <div class="lfm-art-placeholder">♪</div>
+          }
+          <div class="lfm-info">
+            <div class="lfm-track">{a.name}</div>
+            <div class="lfm-artist">{a.artist}</div>
+            <div class="lfm-bar-wrap">
+              <div class="lfm-bar" style={`width:${Math.round((a.playcount / maxAlbum) * 100)}%`}></div>
+            </div>
+          </div>
+          <span class="lfm-badge badge-plays">{a.playcount.toLocaleString()} <span class="badge-unit">plays</span></span>
+        </div>
+      ))}
+    </div>
+
+    <h2>// TOP ARTISTS</h2>
+    <div class="lfm-list">
+      {topArtists.map((a, i) => (
+        <div class="lfm-row">
+          <span class="lfm-index">{String(i + 1).padStart(2, '0')}</span>
+          <div class="lfm-info">
+            <div class="lfm-track">{a.name}</div>
+            <div class="lfm-bar-wrap">
+              <div class="lfm-bar" style={`width:${Math.round((a.playcount / maxArtist) * 100)}%`}></div>
+            </div>
+          </div>
+          <span class="lfm-badge badge-plays">{a.playcount.toLocaleString()} <span class="badge-unit">scrobbles</span></span>
+        </div>
+      ))}
     </div>
 
   </div>
 </Base>
 
 <style>
+  .updated { display: block; font-size: 11px; color: var(--text-dim); margin-top: 4px; }
   .lfm { max-width: 640px; margin-top: 8px; }
 
-  .lfm-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 32px;
-  }
+  /* ── CHARTS ── */
+  .charts-grid { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
 
-  .lfm-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+  .chart-card {
     background: var(--bg-dark);
     border: 1px solid var(--border);
-    border-radius: 5px;
-    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    border-radius: 6px;
+    padding: 16px 18px;
   }
-  .lfm-row:hover {
-    border-color: var(--accent);
-    background: var(--bg-panel);
-    transform: translateX(3px);
-  }
-  .lfm-row.now-playing {
-    border-color: var(--accent);
-    box-shadow: inset 3px 0 0 var(--accent);
-  }
-  .lfm-row.now-playing .lfm-track { color: var(--accent); }
-
-  .lfm-index {
-    font-size: 11px;
-    color: var(--text-dim);
-    width: 16px;
-    flex-shrink: 0;
-    text-align: center;
-  }
-
-  .lfm-art {
-    width: 38px;
-    height: 38px;
-    object-fit: cover;
-    border-radius: 3px;
-    flex-shrink: 0;
-    border: 1px solid var(--border);
-  }
-  .lfm-art-placeholder {
-    width: 38px;
-    height: 38px;
-    flex-shrink: 0;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    color: var(--text-dim);
-  }
-
-  .lfm-info { flex: 1; min-width: 0; }
-  .lfm-track {
-    font-size: 13px;
+  .chart-title {
+    font-size: 12px;
+    font-weight: 700;
     color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.4;
+    margin-bottom: 14px;
   }
-  .lfm-artist {
-    font-size: 11px;
-    color: var(--text-dim);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 1px;
+  .chart-sub { font-weight: 400; color: var(--text-dim); font-size: 11px; margin-left: 6px; }
+
+  /* Donut */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-svg { flex-shrink: 0; }
+  .donut-slice { transition: opacity 0.15s; cursor: default; }
+  .donut-slice:hover { opacity: 0.75; }
+  .donut-center-num { font-family: var(--pixel); font-size: 14px; fill: var(--accent); }
+  .donut-center-label { font-family: var(--mono); font-size: 9px; fill: var(--text-dim); }
+  .donut-legend { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
+  .legend-row { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .legend-name { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .legend-pct { color: var(--text-dim); flex-shrink: 0; }
+
+  /* Cliff */
+  .cliff-svg { display: block; }
+  .cliff-dot { transition: r 0.1s; cursor: default; }
+  .cliff-dot:hover { r: 5; }
+  .cliff-label { font-family: var(--mono); font-size: 9px; fill: var(--text-dim); }
+  .cliff-stats { display: flex; gap: 0; border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px; }
+  .cliff-stat { flex: 1; text-align: center; border-right: 1px solid var(--border); }
+  .cliff-stat:last-child { border-right: none; }
+  .cliff-stat-val { display: block; font-family: var(--pixel); font-size: 13px; color: var(--teal); }
+  .cliff-stat-label { display: block; font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+
+  /* Loyalty */
+  .loyalty-list { display: flex; flex-direction: column; gap: 8px; }
+  .loyalty-row { display: flex !important; align-items: center !important; gap: 10px; }
+  .loyalty-name {
+    font-size: 11px; color: var(--text);
+    width: 110px; flex-shrink: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .loyalty-bars { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .loyalty-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .loyalty-bar { height: 100%; border-radius: 2px; }
+  .bar-plays { background: var(--teal); }
+  .loyalty-plays { font-size: 10px; color: var(--text-dim); width: 36px; text-align: right; flex-shrink: 0; }
+  .loyalty-albums { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+  .album-pip {
+    width: 8px; height: 8px; border-radius: 1px;
+    background: var(--border); flex-shrink: 0;
+  }
+  .album-pip.filled { background: var(--accent); }
+  .loyalty-album-count { font-size: 10px; color: var(--text-dim); margin-left: 4px; white-space: nowrap; }
+  .loyalty-legend {
+    display: flex; gap: 16px; margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--border); font-size: 10px; color: var(--text-dim);
+    align-items: center;
+  }
+  .loyalty-legend span { display: flex; align-items: center; gap: 5px; }
+  .bar-plays-dot { width: 10px; height: 4px; background: var(--teal); border-radius: 2px; display: inline-block; }
+
+  /* ── LISTS ── */
+  .lfm-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 32px; margin-left: 0 !important; }
+
+  .lfm-row {
+    display: flex !important; align-items: center !important; gap: 10px;
+    padding: 8px 10px; background: var(--bg-dark);
+    border: 1px solid var(--border); border-radius: 5px;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    margin: 0 !important;
+  }
+  .lfm-row:hover { border-color: var(--accent); background: var(--bg-panel); transform: translateX(3px); }
+
+  .lfm-index { font-size: 11px; color: var(--text-dim); width: 16px; flex-shrink: 0; text-align: center; margin: 0 !important; }
+
+  .lfm-art { width: 38px; height: 38px; object-fit: cover; border-radius: 3px; flex-shrink: 0; border: 1px solid var(--border); margin: 0 !important; }
+  .lfm-art-placeholder {
+    width: 38px; height: 38px; flex-shrink: 0; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 3px;
+    display: flex !important; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--text-dim); margin: 0 !important;
   }
 
-  .lfm-bar-wrap {
-    height: 2px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-top: 5px;
-    overflow: hidden;
-  }
-  .lfm-bar {
-    height: 100%;
-    background: var(--teal);
-    border-radius: 2px;
-  }
+  .lfm-info { flex: 1; min-width: 0; margin: 0 !important; }
+  .lfm-track { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; margin: 0 !important; }
+  .lfm-artist { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 !important; margin-top: 1px !important; }
+
+  .lfm-bar-wrap { height: 2px; background: var(--border); border-radius: 2px; margin-top: 5px !important; margin-bottom: 0 !important; overflow: hidden; }
+  .lfm-bar { height: 100%; background: var(--teal); border-radius: 2px; }
   .lfm-row:hover .lfm-bar { background: var(--accent); }
 
-  .lfm-badge {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 700;
-    flex-shrink: 0;
-    padding: 3px 8px;
-    border-radius: 3px;
-    white-space: nowrap;
-    border: 1px solid transparent;
-  }
-  .badge-live {
-    color: var(--accent);
-    background: rgba(220,79,10,0.1);
-    border-color: rgba(220,79,10,0.3);
-    animation: lfm-pulse 2s ease infinite;
-  }
-  .badge-time {
-    color: var(--text-dim);
-    background: var(--bg);
-    border-color: var(--border);
-    font-weight: 400;
-    font-size: 10px;
-  }
-  .badge-plays {
-    color: var(--green);
-    background: rgba(133,153,0,0.08);
-    border-color: rgba(133,153,0,0.25);
-  }
+  .lfm-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; flex-shrink: 0; padding: 3px 8px; border-radius: 3px; white-space: nowrap; border: 1px solid transparent; margin: 0 !important; }
+  .badge-plays { color: var(--green); background: rgba(133,153,0,0.08); border-color: rgba(133,153,0,0.25); }
   .badge-unit { font-weight: 400; opacity: 0.7; }
-
-  @keyframes lfm-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-  .h2-sub { font-family: var(--mono); font-size: 10px; color: var(--text-dim); font-weight: 400; margin-left: 8px; }
-
-  .lfm-footer {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--text-dim);
-    border-top: 1px solid var(--border);
-    padding-top: 12px;
-    margin-top: -20px;
-  }
-  .lfm-footer a { color: var(--text-dim); text-decoration: none; }
-  .lfm-footer a:hover { color: var(--accent); }
 </style>
