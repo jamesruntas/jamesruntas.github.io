@@ -31,7 +31,7 @@ function isActive(href: string) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title} — James Runtas</title>
-  <meta name="description" content="James Runtas — Software Developer portfolio" />
+  <meta name="description" content="James Runtas - Portfolio" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </head>
 <body>
@@ -73,9 +73,9 @@ function isActive(href: string) {
             Solarized Light <span class="dropdown-arrow">▾</span>
           </button>
           <ul class="theme-menu" id="theme-menu" role="menu">
-            <li role="menuitem" data-theme="solarized" class="active">Solarized Light</li>
+            <li role="menuitem" data-theme="solarized" >Solarized Light</li>
             <li role="menuitem" data-theme="matrix">Dark Matrix</li>
-            <li role="menuitem" data-theme="macintosh">Classic Macintosh</li>
+            <li role="menuitem" data-theme="macintosh" class="active">Classic Macintosh</li>
             <li role="menuitem" data-theme="blue-energy">Blue Energy</li>
           </ul>
         </div>
@@ -345,7 +345,7 @@ function isActive(href: string) {
     { prompt: '$', cmd: 'connecting jamesruntas.ca........',   status: 'OK',  type: '',          delay: 1550 },
     { prompt: '$', cmd: 'authenticating user@jamesruntas.ca',  status: 'OK',  type: '',          delay: 1850 },
     { prompt: '$', cmd: 'spawning terminal UI.............',    status: 'OK',  type: '',          delay: 2150 },
-    { prompt: '>', cmd: 'welcome, james.',                      status: null,  type: 'highlight', delay: 2500 },
+    { prompt: '>', cmd: 'welcome',                      status: null,  type: 'highlight', delay: 2500 },
     { prompt: ' ', cmd: '# press any key to continue',         status: null,  type: 'dim',       delay: 2700 },
   ];
 
