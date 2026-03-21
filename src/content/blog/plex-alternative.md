@@ -46,7 +46,7 @@ On paper, these four tools together do everything Plex does and more, for free, 
 - Writing and scheduling Robocopy scripts for redundant backups
 - Configuring firewall rules for each service port
 
-This is not a weekend afternoon. This is a multi-day project that requires comfort with terminals, networking concepts, and Docker a skillset that most people trying to leave Google Photos simply don't have.
+This is not a weekend afternoon. This is a multi-day project that requires comfort with terminals, networking concepts, and Docker a skillset that most people trying to leave Google Photos simply don't have. Further, leaving Google Photos requires a VERY cumbersome process. Google has implemented anti-competitive practices that makes extracting your data painful. You request zip files of your media that are emailed to you within a few minutes. However, they intially seperate the jpg/mp4s from the metadata, which are JSON files. Someone even made a script, GPTH (Google Photos Takeout Helper) that goes and reconciles the JSON into the media files. 
 
 > The tools are free. The knowledge to use them is not.
 
@@ -122,12 +122,18 @@ Rather than bundling Immich — which requires Docker and a Linux environment �
 | SQLite | Zero-config embedded database, stores file index, metadata, thumbnails | Public domain |
 | ExifTool | Battle-tested metadata extraction from HEIC, MOV, JPEG, RAW | Artistic |
 | libvips | Fast thumbnail generation, handles every major image format | LGPL |
+| GPTH | extracts and reconciles google takeout media | open source|
 
 **What it does:**
 - Watches the media folder for new files
 - Extracts metadata on arrival
 - Generates thumbnails for fast browsing
 - Exposes a JSON API that the iOS app consumes
+- Drag and Drop Google Takeout ZIP into the system
+
+GPTH Iteration 1:
+I also want to implement the GPTH in this solution. The good news is that I can implement this securely, with no access to users google account, or dealing with API. After digging around, the only viable solution is to require users to go through the zip email process, and then they can drag/drop into the windows app where the reconciliation is performed. I poked around for an equivalent iCloud migration, and it may be possible to do iCloud migration on the mobile device, rather than windows. Which is ideal. 
+ 
 
 *Engineering effort: 3–4 weeks for a solid implementation.*
 
