@@ -12,7 +12,7 @@ const currentPath = Astro.url.pathname;
 
 const navItems = [
   { label: 'me.md',       href: '/',           folder: 'about',      file: 'me.md' },
-  { label: 'music.md',    href: '/music',      folder: 'music',      file: 'music.md' },  // ← add this
+  { label: 'music.md',    href: '/music',      folder: 'music',      file: 'music.md' },
   { label: 'projects.md', href: '/projects',   folder: 'projects',   file: 'projects.md' },
   { label: 'work.md',     href: '/experience', folder: 'experience', file: 'work.md' },
   { label: 'posts.md',    href: '/blog',       folder: 'blog',       file: 'posts.md' },
@@ -31,8 +31,23 @@ function isActive(href: string) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title} — James Runtas</title>
-  <meta name="description" content="James Runtas - Portfolio" />
+  <meta name="description" content="James Runtas — Software Developer portfolio" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <script is:inline>
+    // Apply theme before first paint to avoid flash
+    const t = sessionStorage.getItem('theme') || 'macintosh';
+    document.documentElement.setAttribute('data-theme', t);
+    const mac = {
+      '--bg':'#dddddd','--bg-dark':'#c0c0c0','--bg-panel':'#e8e8e8',
+      '--sidebar':'#c8c8c8','--border':'#555555','--text':'#111111',
+      '--text-dim':'#555555','--accent':'#cc0000','--accent2':'#990000',
+      '--teal':'#333333','--blue':'#0000cc','--green':'#006400',
+      '--yellow':'#8b6914','--body-bg':'#aaaaaa','--pixel-color':'#cc0000',
+    };
+    const themes = { macintosh: mac };
+    const vars = themes[t];
+    if (vars) Object.entries(vars).forEach(([k,v]) => document.documentElement.style.setProperty(k,v));
+  </script>
 </head>
 <body>
 
@@ -73,9 +88,9 @@ function isActive(href: string) {
             Solarized Light <span class="dropdown-arrow">▾</span>
           </button>
           <ul class="theme-menu" id="theme-menu" role="menu">
-            <li role="menuitem" data-theme="solarized" >Solarized Light</li>
+            <li role="menuitem" data-theme="solarized" class="active">Solarized Light</li>
             <li role="menuitem" data-theme="matrix">Dark Matrix</li>
-            <li role="menuitem" data-theme="macintosh" class="active">Classic Macintosh</li>
+            <li role="menuitem" data-theme="macintosh">Classic Macintosh</li>
             <li role="menuitem" data-theme="blue-energy">Blue Energy</li>
           </ul>
         </div>
@@ -345,7 +360,7 @@ function isActive(href: string) {
     { prompt: '$', cmd: 'connecting jamesruntas.ca........',   status: 'OK',  type: '',          delay: 1550 },
     { prompt: '$', cmd: 'authenticating user@jamesruntas.ca',  status: 'OK',  type: '',          delay: 1850 },
     { prompt: '$', cmd: 'spawning terminal UI.............',    status: 'OK',  type: '',          delay: 2150 },
-    { prompt: '>', cmd: 'welcome',                      status: null,  type: 'highlight', delay: 2500 },
+    { prompt: '>', cmd: 'welcome, james.',                      status: null,  type: 'highlight', delay: 2500 },
     { prompt: ' ', cmd: '# press any key to continue',         status: null,  type: 'dim',       delay: 2700 },
   ];
 
