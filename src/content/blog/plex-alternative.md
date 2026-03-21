@@ -131,7 +131,7 @@ Rather than bundling Immich â€” which requires Docker and a Linux environment â€
 - Exposes a JSON API that the iOS app consumes
 - Drag and Drop Google Takeout ZIP into the system
 
-GPTH Iteration 1:
+**GPTH Iteration 1:**
 I also want to implement the GPTH in this solution. The good news is that I can implement this securely, with no access to users google account, or dealing with API. After digging around, the only viable solution is to require users to go through the zip email process, and then they can drag/drop into the windows app where the reconciliation is performed. I poked around for an equivalent iCloud migration, and it may be possible to do iCloud migration on the mobile device, rather than windows. Which is ideal. 
  
 
